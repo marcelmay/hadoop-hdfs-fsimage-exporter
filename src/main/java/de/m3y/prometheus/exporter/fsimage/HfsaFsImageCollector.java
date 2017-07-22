@@ -271,11 +271,7 @@ public class HfsaFsImageCollector extends Collector {
 
                 // Group stats
                 final String groupName = p.getGroupName();
-                GroupStats result1;
-                synchronized (report.groupStats) {
-                    result1 = report.groupStats.computeIfAbsent(groupName, GroupStats::new);
-                }
-                final GroupStats groupStat = result1;
+                final GroupStats groupStat = report.groupStats.computeIfAbsent(groupName, GroupStats::new);
                 synchronized (groupStat) {
                     groupStat.sumFiles++;
                     groupStat.sumFileSize += fileSize;
@@ -285,11 +281,7 @@ public class HfsaFsImageCollector extends Collector {
 
                 // User stats
                 final String userName = p.getUserName();
-                UserStats result;
-                synchronized (report.userStats) {
-                    result = report.userStats.computeIfAbsent(userName, UserStats::new);
-                }
-                UserStats user = result;
+                UserStats user = report.userStats.computeIfAbsent(userName, UserStats::new);
                 synchronized (user) {
                     user.sumFiles++;
                     user.sumFileSize += fileSize;
