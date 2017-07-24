@@ -32,7 +32,7 @@ public class HomePageServlet extends HttpServlet {
                 + "</ul>"
                 + "<h2>Configuration</h2><ul>"
                 + "<li>Path to HDFS NameNode fsImage snapshots : " + config.getFsImagePath() + "</li>"
-                + "<li>Skip previously parsed fsImage files : " + config.isSkipPreviouslyParsed() + "</li>"
+                + "<li>Skip re-parsing previously parsed fsImage files : " + config.isSkipPreviouslyParsed() + "</li>"
                 + "</ul></body>\n"
                 + "</html>");
     }
