@@ -64,6 +64,7 @@ For running:
 * Release 1.0
 * Export the exporter JVM heap usage, for exporter fine tuning
 * Export additionally to total/user/group the stats also for a configurable list of directories
+* Switch to histogram for file size distribution?
 * Export symlink stats?
 * Logging conf
 * Docker image
