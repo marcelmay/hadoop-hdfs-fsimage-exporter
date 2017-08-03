@@ -66,7 +66,6 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
 * Release 1.0
 * Export the exporter JVM heap usage, for exporter fine tuning
 * Export additionally to total/user/group the stats also for a configurable list of directories
-* Switch to histogram for file size distribution?
 * Logging conf
 * Docker image
 * Example Grafana dashboard?
@@ -78,102 +77,139 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
 ![Home output](home.png)
 
 ### Example metrics
-Here's the example output for the [test fsimage](src/test/resources/fsimage_0):
+Here's the example output for the [test fsimage](src/test/resources/fsimage_0001):
 
 ```
-# HELP fsimage_file_count Number of files.
-# TYPE fsimage_file_count gauge
-fsimage_file_count 16.0
+# HELP fsimage_dirs_count Number of directories.
+# TYPE fsimage_dirs_count gauge
+fsimage_dirs_count 14.0
 # HELP fsimage_scrape_requests_total Exporter requests made
 # TYPE fsimage_scrape_requests_total counter
 fsimage_scrape_requests_total 1.0
-# HELP fsimage_user_size_bytes Sum of all file sizes.
-# TYPE fsimage_user_size_bytes gauge
-fsimage_user_size_bytes{user_name="foo",} 1.6777216E8
-fsimage_user_size_bytes{user_name="root",} 1024.0
-fsimage_user_size_bytes{user_name="mm",} 1.8863616E8
-# HELP fsimage_scrape_error_total Non-zero if this scrape failed.
-# TYPE fsimage_scrape_error_total gauge
-fsimage_scrape_error_total 0.0
-# HELP fsimage_user_fsize_bucket_count Counts file size distribution in buckets, showing small files and size distribution. Bucket label is upper size in bytes
-# TYPE fsimage_user_fsize_bucket_count gauge
-fsimage_user_fsize_bucket_count{user_name="mm",bucket="1048576",} 3.0
-fsimage_user_fsize_bucket_count{user_name="foo",bucket="10737418240",} 0.0
-fsimage_user_fsize_bucket_count{user_name="mm",bucket="134217728",} 1.0
-fsimage_user_fsize_bucket_count{user_name="root",bucket="134217728",} 0.0
-fsimage_user_fsize_bucket_count{user_name="foo",bucket="33554432",} 0.0
-fsimage_user_fsize_bucket_count{user_name="root",bucket="1073741824",} 0.0
-fsimage_user_fsize_bucket_count{user_name="root",bucket="9223372036854775807",} 0.0
-fsimage_user_fsize_bucket_count{user_name="mm",bucket="0",} 0.0
-fsimage_user_fsize_bucket_count{user_name="mm",bucket="1073741824",} 0.0
-fsimage_user_fsize_bucket_count{user_name="mm",bucket="9223372036854775807",} 0.0
-fsimage_user_fsize_bucket_count{user_name="root",bucket="33554432",} 0.0
-fsimage_user_fsize_bucket_count{user_name="root",bucket="1048576",} 1.0
-fsimage_user_fsize_bucket_count{user_name="foo",bucket="67108864",} 0.0
-fsimage_user_fsize_bucket_count{user_name="foo",bucket="0",} 0.0
-fsimage_user_fsize_bucket_count{user_name="foo",bucket="1073741824",} 1.0
-fsimage_user_fsize_bucket_count{user_name="foo",bucket="9223372036854775807",} 0.0
-fsimage_user_fsize_bucket_count{user_name="mm",bucket="67108864",} 1.0
-fsimage_user_fsize_bucket_count{user_name="mm",bucket="10737418240",} 0.0
-fsimage_user_fsize_bucket_count{user_name="foo",bucket="1048576",} 0.0
-fsimage_user_fsize_bucket_count{user_name="mm",bucket="33554432",} 9.0
-fsimage_user_fsize_bucket_count{user_name="root",bucket="67108864",} 0.0
-fsimage_user_fsize_bucket_count{user_name="foo",bucket="134217728",} 0.0
-fsimage_user_fsize_bucket_count{user_name="root",bucket="0",} 0.0
-fsimage_user_fsize_bucket_count{user_name="root",bucket="10737418240",} 0.0
-# HELP fsimage_scrape_duration_ms Scrape duration in ms
-# TYPE fsimage_scrape_duration_ms gauge
-fsimage_scrape_duration_ms 149.0
-# HELP fsimage_dir_count Number of directories.
-# TYPE fsimage_dir_count gauge
-fsimage_dir_count 14.0
-# HELP fsimage_file_size_bytes Sum of all file sizes.
-# TYPE fsimage_file_size_bytes gauge
-fsimage_file_size_bytes 3.56409344E8
-# HELP fsimage_group_dir_count Number of directories.
-# TYPE fsimage_group_dir_count gauge
-fsimage_group_dir_count{group_name="root",} 0.0
-fsimage_group_dir_count{group_name="supergroup",} 14.0
-fsimage_group_dir_count{group_name="nobody",} 0.0
-# HELP fsimage_user_file_count Number of files.
-# TYPE fsimage_user_file_count gauge
-fsimage_user_file_count{user_name="foo",} 1.0
-fsimage_user_file_count{user_name="root",} 1.0
-fsimage_user_file_count{user_name="mm",} 14.0
-# HELP fsimage_user_block_count Number of blocks.
-# TYPE fsimage_user_block_count gauge
-fsimage_user_block_count{user_name="foo",} 2.0
-fsimage_user_block_count{user_name="root",} 1.0
-fsimage_user_block_count{user_name="mm",} 14.0
-# HELP fsimage_block_count Number of blocks.
-# TYPE fsimage_block_count gauge
-fsimage_block_count 17.0
-# HELP fsimage_group_file_count Number of files.
-# TYPE fsimage_group_file_count gauge
-fsimage_group_file_count{group_name="root",} 1.0
-fsimage_group_file_count{group_name="supergroup",} 13.0
-fsimage_group_file_count{group_name="nobody",} 2.0
-# HELP fsimage_group_size_bytes Sum of all file sizes.
-# TYPE fsimage_group_size_bytes gauge
-fsimage_group_size_bytes{group_name="root",} 1024.0
-fsimage_group_size_bytes{group_name="supergroup",} 1.6766464E8
-fsimage_group_size_bytes{group_name="nobody",} 1.8874368E8
-# HELP fsimage_user_dir_count Number of directories.
-# TYPE fsimage_user_dir_count gauge
-fsimage_user_dir_count{user_name="foo",} 0.0
-fsimage_user_dir_count{user_name="root",} 0.0
-fsimage_user_dir_count{user_name="mm",} 14.0
+# HELP fsimage_scrape_duration_seconds Scrape duration
+# TYPE fsimage_scrape_duration_seconds gauge
+fsimage_scrape_duration_seconds 0.163850832
+# HELP fsimage_user_blocks_count Number of blocks.
+# TYPE fsimage_user_blocks_count gauge
+fsimage_user_blocks_count{user_name="foo",} 2.0
+fsimage_user_blocks_count{user_name="root",} 1.0
+fsimage_user_blocks_count{user_name="mm",} 14.0
+# HELP fsimage_links_count Number of sym links.
+# TYPE fsimage_links_count gauge
+fsimage_links_count 0.0
+# HELP fsimage_group_links_count Number of sym links.
+# TYPE fsimage_group_links_count gauge
+fsimage_group_links_count{group_name="root",} 0.0
+fsimage_group_links_count{group_name="supergroup",} 0.0
+fsimage_group_links_count{group_name="nobody",} 0.0
+# HELP fsimage_scrape_skips_total Counts the fsimage scrape skips (no fsimage change).
+# TYPE fsimage_scrape_skips_total counter
+fsimage_scrape_skips_total 1.0
+# HELP fsimage_blocks_count Number of blocks.
+# TYPE fsimage_blocks_count gauge
+fsimage_blocks_count 18.0
+# HELP fsimage_group_dirs_count Number of directories.
+# TYPE fsimage_group_dirs_count gauge
+fsimage_group_dirs_count{group_name="root",} 0.0
+fsimage_group_dirs_count{group_name="supergroup",} 14.0
+fsimage_group_dirs_count{group_name="nobody",} 0.0
+# HELP fsimage_user_dirs_count Number of directories.
+# TYPE fsimage_user_dirs_count gauge
+fsimage_user_dirs_count{user_name="foo",} 0.0
+fsimage_user_dirs_count{user_name="root",} 0.0
+fsimage_user_dirs_count{user_name="mm",} 14.0
+# HELP fsimage_group_blocks_count Number of blocks.
+# TYPE fsimage_group_blocks_count gauge
+fsimage_group_blocks_count{group_name="root",} 1.0
+fsimage_group_blocks_count{group_name="supergroup",} 13.0
+fsimage_group_blocks_count{group_name="nobody",} 3.0
 # HELP fsimage_exporter_app_info Application build info
 # TYPE fsimage_exporter_app_info gauge
-fsimage_exporter_app_info{appName="fsimage_exporter",appVersion="1.0-SNAPSHOT",buildTime="2017-07-24/20:04",buildScmVersion="68aef7af7c522e61677de8a0203b31d9da652244",buildScmBranch="master",} 1.0
-# HELP fsimage_scrape_skip_total Counts the fsimage scrapes skips, as the fsimage is versioned and got already processed.
-# TYPE fsimage_scrape_skip_total gauge
-fsimage_scrape_skip_total 1.0
-# HELP fsimage_group_block_count Number of blocks.
-# TYPE fsimage_group_block_count gauge
-fsimage_group_block_count{group_name="root",} 1.0
-fsimage_group_block_count{group_name="supergroup",} 13.0
-fsimage_group_block_count{group_name="nobody",} 3.0
+fsimage_exporter_app_info{appName="fsimage_exporter",appVersion="1.0-SNAPSHOT",buildTime="2017-08-03/20:29",buildScmVersion="b1dfdeb1eda1bc829e029a19bc7bb892811edd3f",buildScmBranch="master",} 1.0
+# HELP fsimage_group_fsize Counts file size distribution in buckets, showing small files and size distribution. Bucket label is upper size in bytes
+# TYPE fsimage_group_fsize histogram
+fsimage_group_fsize_bucket{group_name="root",le="0.0",} 0.0
+fsimage_group_fsize_bucket{group_name="root",le="1048576.0",} 1.0
+fsimage_group_fsize_bucket{group_name="root",le="3.3554432E7",} 1.0
+fsimage_group_fsize_bucket{group_name="root",le="6.7108864E7",} 1.0
+fsimage_group_fsize_bucket{group_name="root",le="1.34217728E8",} 1.0
+fsimage_group_fsize_bucket{group_name="root",le="1.073741824E9",} 1.0
+fsimage_group_fsize_bucket{group_name="root",le="1.073741824E10",} 1.0
+fsimage_group_fsize_bucket{group_name="root",le="+Inf",} 1.0
+fsimage_group_fsize_count{group_name="root",} 1.0
+fsimage_group_fsize_sum{group_name="root",} 1024.0
+fsimage_group_fsize_bucket{group_name="supergroup",le="0.0",} 0.0
+fsimage_group_fsize_bucket{group_name="supergroup",le="1048576.0",} 3.0
+fsimage_group_fsize_bucket{group_name="supergroup",le="3.3554432E7",} 11.0
+fsimage_group_fsize_bucket{group_name="supergroup",le="6.7108864E7",} 12.0
+fsimage_group_fsize_bucket{group_name="supergroup",le="1.34217728E8",} 13.0
+fsimage_group_fsize_bucket{group_name="supergroup",le="1.073741824E9",} 13.0
+fsimage_group_fsize_bucket{group_name="supergroup",le="1.073741824E10",} 13.0
+fsimage_group_fsize_bucket{group_name="supergroup",le="+Inf",} 13.0
+fsimage_group_fsize_count{group_name="supergroup",} 13.0
+fsimage_group_fsize_sum{group_name="supergroup",} 1.6766464E8
+fsimage_group_fsize_bucket{group_name="nobody",le="0.0",} 0.0
+fsimage_group_fsize_bucket{group_name="nobody",le="1048576.0",} 0.0
+fsimage_group_fsize_bucket{group_name="nobody",le="3.3554432E7",} 1.0
+fsimage_group_fsize_bucket{group_name="nobody",le="6.7108864E7",} 1.0
+fsimage_group_fsize_bucket{group_name="nobody",le="1.34217728E8",} 1.0
+fsimage_group_fsize_bucket{group_name="nobody",le="1.073741824E9",} 2.0
+fsimage_group_fsize_bucket{group_name="nobody",le="1.073741824E10",} 2.0
+fsimage_group_fsize_bucket{group_name="nobody",le="+Inf",} 2.0
+fsimage_group_fsize_count{group_name="nobody",} 2.0
+fsimage_group_fsize_sum{group_name="nobody",} 1.8874368E8
+# HELP fsimage_fsize Counts file size distribution in buckets, showing small files and size distribution. Bucket label is upper size in bytes
+# TYPE fsimage_fsize histogram
+fsimage_fsize_bucket{le="0.0",} 0.0
+fsimage_fsize_bucket{le="1048576.0",} 4.0
+fsimage_fsize_bucket{le="3.3554432E7",} 13.0
+fsimage_fsize_bucket{le="6.7108864E7",} 14.0
+fsimage_fsize_bucket{le="1.34217728E8",} 15.0
+fsimage_fsize_bucket{le="1.073741824E9",} 16.0
+fsimage_fsize_bucket{le="1.073741824E10",} 16.0
+fsimage_fsize_bucket{le="+Inf",} 16.0
+fsimage_fsize_count 16.0
+fsimage_fsize_sum 3.56409344E8
+# HELP fsimage_user_links_count Number of sym links.
+# TYPE fsimage_user_links_count gauge
+fsimage_user_links_count{user_name="foo",} 0.0
+fsimage_user_links_count{user_name="root",} 0.0
+fsimage_user_links_count{user_name="mm",} 0.0
+# HELP fsimage_scrape_errors_total Counts failed scrapes.
+# TYPE fsimage_scrape_errors_total counter
+fsimage_scrape_errors_total 0.0
+# HELP fsimage_user_fsize Counts file size distribution in buckets, showing small files and size distribution. Bucket label is upper size in bytes
+# TYPE fsimage_user_fsize histogram
+fsimage_user_fsize_bucket{user_name="root",le="0.0",} 0.0
+fsimage_user_fsize_bucket{user_name="root",le="1048576.0",} 1.0
+fsimage_user_fsize_bucket{user_name="root",le="3.3554432E7",} 1.0
+fsimage_user_fsize_bucket{user_name="root",le="6.7108864E7",} 1.0
+fsimage_user_fsize_bucket{user_name="root",le="1.34217728E8",} 1.0
+fsimage_user_fsize_bucket{user_name="root",le="1.073741824E9",} 1.0
+fsimage_user_fsize_bucket{user_name="root",le="1.073741824E10",} 1.0
+fsimage_user_fsize_bucket{user_name="root",le="+Inf",} 1.0
+fsimage_user_fsize_count{user_name="root",} 1.0
+fsimage_user_fsize_sum{user_name="root",} 1024.0
+fsimage_user_fsize_bucket{user_name="foo",le="0.0",} 0.0
+fsimage_user_fsize_bucket{user_name="foo",le="1048576.0",} 0.0
+fsimage_user_fsize_bucket{user_name="foo",le="3.3554432E7",} 0.0
+fsimage_user_fsize_bucket{user_name="foo",le="6.7108864E7",} 0.0
+fsimage_user_fsize_bucket{user_name="foo",le="1.34217728E8",} 0.0
+fsimage_user_fsize_bucket{user_name="foo",le="1.073741824E9",} 1.0
+fsimage_user_fsize_bucket{user_name="foo",le="1.073741824E10",} 1.0
+fsimage_user_fsize_bucket{user_name="foo",le="+Inf",} 1.0
+fsimage_user_fsize_count{user_name="foo",} 1.0
+fsimage_user_fsize_sum{user_name="foo",} 1.6777216E8
+fsimage_user_fsize_bucket{user_name="mm",le="0.0",} 0.0
+fsimage_user_fsize_bucket{user_name="mm",le="1048576.0",} 3.0
+fsimage_user_fsize_bucket{user_name="mm",le="3.3554432E7",} 12.0
+fsimage_user_fsize_bucket{user_name="mm",le="6.7108864E7",} 13.0
+fsimage_user_fsize_bucket{user_name="mm",le="1.34217728E8",} 14.0
+fsimage_user_fsize_bucket{user_name="mm",le="1.073741824E9",} 14.0
+fsimage_user_fsize_bucket{user_name="mm",le="1.073741824E10",} 14.0
+fsimage_user_fsize_bucket{user_name="mm",le="+Inf",} 14.0
+fsimage_user_fsize_count{user_name="mm",} 14.0
+fsimage_user_fsize_sum{user_name="mm",} 1.8863616E8
 ```
 ## License
 
