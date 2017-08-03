@@ -13,6 +13,7 @@ import de.m3y.hadoop.hdfs.hfsa.util.SizeBucket;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
+import io.prometheus.client.Histogram;
 import org.apache.hadoop.fs.permission.PermissionStatus;
 import org.apache.hadoop.hdfs.server.namenode.FsImageProto;
 import org.slf4j.Logger;
@@ -105,51 +106,51 @@ public class HfsaFsImageCollector extends Collector {
 
     static class UserStats {
         final String userName;
-        long sumFiles;
         long sumBlocks;
-        long sumFileSize;
         long sumDirectories;
-        final SizeBucket fileSizeBuckets;
 
         UserStats(String userName) {
             this.userName = userName;
-            fileSizeBuckets = new SizeBucket(new FixedBucketModel());
         }
     }
 
     static class GroupStats {
         final String groupName;
-        long sumFiles;
         long sumBlocks;
-        long sumFileSize;
         long sumDirectories;
-        final SizeBucket fileSizeBuckets;
 
         GroupStats(String groupName) {
             this.groupName = groupName;
-            fileSizeBuckets = new SizeBucket(new FixedBucketModel());
         }
     }
 
-    static final Gauge METRIC_SUM_FILES = Gauge.build()
-            .name(METRIC_PREFIX + "file_count")
-            .help("Number of files.").register();
+    private static final long SIZE_1_MIB = 1024L * 1024L;
+    private static final long SIZE_1_GIB = 1024L * SIZE_1_MIB;
+    private static final long[] BUCKET_UPPER_BOUNDARIES = new long[]{
+            0L /* 0 B */,
+            SIZE_1_MIB /* 1 MiB */,
+            32L * SIZE_1_MIB /* 32 MiB */,
+            64L * SIZE_1_MIB /* 64 MiB */,
+            128L * SIZE_1_MIB /* 128 MiB */,
+            SIZE_1_GIB /* 1 GiB */,
+            10L * SIZE_1_GIB /* 10 GiB */
+    };
+
     static final Gauge METRIC_SUM_DIRS = Gauge.build()
             .name(METRIC_PREFIX + "dir_count")
             .help("Number of directories.").register();
     static final Gauge METRIC_SUM_BLOCKS = Gauge.build()
             .name(METRIC_PREFIX + "block_count")
             .help("Number of blocks.").register();
-    static final Gauge METRIC_SUM_FILE_SIZE = Gauge.build()
-            .name(METRIC_PREFIX + "file_size_bytes")
-            .help("Sum of all file sizes.").register();
+    static final Histogram METRIC_FILE_SIZE_BUCKETS = Histogram.build()
+            .name(METRIC_PREFIX + "fsize")
+            .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
+            .help("Counts file size distribution in buckets, showing small files and size distribution. " +
+                    "Bucket label is upper size in bytes").register();
+
 
     // By user
     static final String METRIC_PREFIX_USER = METRIC_PREFIX + "user_";
-    static final Gauge METRIC_USER_SUM_FILES = Gauge.build()
-            .name(METRIC_PREFIX_USER + "file_count")
-            .labelNames("user_name")
-            .help("Number of files.").register();
     static final Gauge METRIC_USER_SUM_DIRS = Gauge.build()
             .name(METRIC_PREFIX_USER + "dir_count")
             .labelNames("user_name")
@@ -158,22 +159,15 @@ public class HfsaFsImageCollector extends Collector {
             .name(METRIC_PREFIX_USER + "block_count")
             .labelNames("user_name")
             .help("Number of blocks.").register();
-    static final Gauge METRIC_USER_SUM_FILE_SIZE = Gauge.build()
-            .name(METRIC_PREFIX_USER + "size_bytes")
+    static final Histogram METRIC_USER_FILE_SIZE_BUCKETS = Histogram.build()
+            .name(METRIC_PREFIX_USER + "fsize")
             .labelNames("user_name")
-            .help("Sum of all file sizes.").register();
-    static final Gauge METRIC_USER_FILE_SIZE_BUCKETS_COUNT = Gauge.build()
-            .name(METRIC_PREFIX_USER + "fsize_bucket_count")
-            .labelNames("user_name", "bucket")
+            .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
             .help("Counts file size distribution in buckets, showing small files and size distribution. " +
                     "Bucket label is upper size in bytes").register();
 
     // By group
     static final String METRIC_PREFIX_GROUP = METRIC_PREFIX + "group_";
-    static final Gauge METRIC_GROUP_SUM_FILES = Gauge.build()
-            .name(METRIC_PREFIX_GROUP + "file_count")
-            .labelNames("group_name")
-            .help("Number of files.").register();
     static final Gauge METRIC_GROUP_SUM_DIRS = Gauge.build()
             .name(METRIC_PREFIX_GROUP + "dir_count")
             .labelNames("group_name")
@@ -182,17 +176,16 @@ public class HfsaFsImageCollector extends Collector {
             .name(METRIC_PREFIX_GROUP + "block_count")
             .labelNames("group_name")
             .help("Number of blocks.").register();
-    static final Gauge METRIC_GROUP_SUM_FILE_SIZE = Gauge.build()
-            .name(METRIC_PREFIX_GROUP + "size_bytes")
+    static final Histogram METRIC_GROUP_FILE_SIZE_BUCKETS = Histogram.build()
+            .name(METRIC_PREFIX_GROUP + "fsize")
             .labelNames("group_name")
-            .help("Sum of all file sizes.").register();
+            .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
+            .help("Counts file size distribution in buckets, showing small files and size distribution. " +
+                    "Bucket label is upper size in bytes").register();
 
     static class OverallStats {
-        long sumFiles;
         long sumDirectories;
         long sumBlocks;
-        long sumFileSize;
-        final SizeBucket sizeBucket = new SizeBucket(new FixedBucketModel());
     }
 
     static class Report {
@@ -209,6 +202,9 @@ public class HfsaFsImageCollector extends Collector {
 
     private void scrape(File fsImageFile) throws IOException {
         LOGGER.info("Parsing " + fsImageFile.getName());
+        METRIC_GROUP_FILE_SIZE_BUCKETS.clear();
+        METRIC_USER_FILE_SIZE_BUCKETS.clear();
+        METRIC_FILE_SIZE_BUCKETS.clear();
 
         RandomAccessFile raFile = new RandomAccessFile(fsImageFile, "r");
         final FSImageLoader loader = FSImageLoader.load(raFile);
@@ -220,34 +216,22 @@ public class HfsaFsImageCollector extends Collector {
 
         // Overall stats
         OverallStats overallStats = report.overallStats;
-        METRIC_SUM_FILES.set(overallStats.sumFiles);
         METRIC_SUM_DIRS.set(overallStats.sumDirectories);
         METRIC_SUM_BLOCKS.set(overallStats.sumBlocks);
-        METRIC_SUM_FILE_SIZE.set(overallStats.sumFileSize);
+        METRIC_SUM_BLOCKS.inc();
 
         // User stats
         for (UserStats userStat : report.userStats.values()) {
             String[] labelValues = new String[]{userStat.userName};
-            METRIC_USER_SUM_FILES.labels(labelValues).set(userStat.sumFiles);
             METRIC_USER_SUM_DIRS.labels(labelValues).set(userStat.sumDirectories);
             METRIC_USER_SUM_BLOCKS.labels(labelValues).set(userStat.sumBlocks);
-            METRIC_USER_SUM_FILE_SIZE.labels(labelValues).set(userStat.sumFileSize);
-
-            final long[] bucketBorders = userStat.fileSizeBuckets.computeBucketUpperBorders();
-            for (int i = 0; i < userStat.fileSizeBuckets.size(); i++) {
-                String bucketLabel = Long.toString(bucketBorders[i]);
-                METRIC_USER_FILE_SIZE_BUCKETS_COUNT.labels(userStat.userName, bucketLabel)
-                        .set(userStat.fileSizeBuckets.getBucketCounter(i));
-            }
         }
 
         // Group stats
         for (GroupStats groupStat : report.groupStats.values()) {
             String[] labelValues = new String[]{groupStat.groupName};
-            METRIC_GROUP_SUM_FILES.labels(labelValues).set(groupStat.sumFiles);
             METRIC_GROUP_SUM_DIRS.labels(labelValues).set(groupStat.sumDirectories);
             METRIC_GROUP_SUM_BLOCKS.labels(labelValues).set(groupStat.sumBlocks);
-            METRIC_GROUP_SUM_FILE_SIZE.labels(labelValues).set(groupStat.sumFileSize);
         }
     }
 
@@ -263,29 +247,23 @@ public class HfsaFsImageCollector extends Collector {
                 final long fileSize = FSImageLoader.getFileSize(f);
                 final long fileBlocks = f.getBlocksCount();
                 synchronized (overallStats) {
-                    overallStats.sizeBucket.add(fileSize);
                     overallStats.sumBlocks += fileBlocks;
-                    overallStats.sumFileSize += fileSize;
-                    overallStats.sumFiles++;
+                    METRIC_FILE_SIZE_BUCKETS.observe(fileSize);
                 }
 
                 // Group stats
                 final String groupName = p.getGroupName();
                 final GroupStats groupStat = report.groupStats.computeIfAbsent(groupName, GroupStats::new);
                 synchronized (groupStat) {
-                    groupStat.sumFiles++;
-                    groupStat.sumFileSize += fileSize;
-                    groupStat.fileSizeBuckets.add(fileSize);
                     groupStat.sumBlocks += fileBlocks;
+                    METRIC_GROUP_FILE_SIZE_BUCKETS.labels(groupName).observe(fileSize);
                 }
 
                 // User stats
                 final String userName = p.getUserName();
                 UserStats user = report.userStats.computeIfAbsent(userName, UserStats::new);
                 synchronized (user) {
-                    user.sumFiles++;
-                    user.sumFileSize += fileSize;
-                    user.fileSizeBuckets.add(fileSize);
+                    METRIC_USER_FILE_SIZE_BUCKETS.labels(userName).observe(fileSize);
                     user.sumBlocks += fileBlocks;
                 }
             }
@@ -324,15 +302,14 @@ public class HfsaFsImageCollector extends Collector {
 
     public List<MetricFamilySamples> collect() {
         long startTime = System.currentTimeMillis();
+
         METRIC_SCRAPE_REQUESTS.inc();
-        try {
+        try(Gauge.Timer timer = METRIC_SCRAPE_DURATION.startTimer()) {
             scrape();
         } catch (Exception e) {
             METRIC_SCRAPE_ERROR.inc();
             LOGGER.warn("FSImage scrape failed", e);
         }
-
-        METRIC_SCRAPE_DURATION.set((System.currentTimeMillis() - startTime));
 
         return Collections.emptyList(); // Directly registered counters
     }
