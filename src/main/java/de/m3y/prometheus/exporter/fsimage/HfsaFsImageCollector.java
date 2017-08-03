@@ -27,14 +27,14 @@ public class HfsaFsImageCollector extends Collector {
             .name(METRIC_PREFIX + "scrape_requests_total")
             .help("Exporter requests made").register();
     private static final Counter METRIC_SCRAPE_ERROR = Counter.build()
-            .name(METRIC_PREFIX + "scrape_error_total")
+            .name(METRIC_PREFIX + "scrape_errors_total")
             .help("Counts failed scrapes.").register();
     private static final Counter METRIC_SCRAPE_SKIPS = Counter.build()
-            .name(METRIC_PREFIX + "scrape_skip_total")
-            .help("Counts the fsimage scrapes skips, as the fsimage is versioned and got already processed.").register();
+            .name(METRIC_PREFIX + "scrape_skips_total")
+            .help("Counts the fsimage scrape skips (no fsimage change).").register();
     private static final Gauge METRIC_SCRAPE_DURATION = Gauge.build()
-            .name(METRIC_PREFIX + "scrape_duration_ms")
-            .help("Scrape duration in ms").register();
+            .name(METRIC_PREFIX + "scrape_duration_seconds")
+            .help("Scrape duration").register();
 
     private String lastFsImageScraped = "";
     final Config config;
@@ -134,14 +134,19 @@ public class HfsaFsImageCollector extends Collector {
             10L * SIZE_1_GIB /* 10 GiB */
     };
 
+    private static final String DIRS_COUNT = "dirs_count";
+    private static final String BLOCKS_COUNT = "blocks_count";
+    public static final String FSIZE = "fsize";
+    private static final String LABEL_USER_NAME = "user_name";
+
     static final Gauge METRIC_SUM_DIRS = Gauge.build()
-            .name(METRIC_PREFIX + "dir_count")
+            .name(METRIC_PREFIX + DIRS_COUNT)
             .help("Number of directories.").register();
     static final Gauge METRIC_SUM_BLOCKS = Gauge.build()
-            .name(METRIC_PREFIX + "block_count")
+            .name(METRIC_PREFIX + BLOCKS_COUNT)
             .help("Number of blocks.").register();
     static final Histogram METRIC_FILE_SIZE_BUCKETS = Histogram.build()
-            .name(METRIC_PREFIX + "fsize")
+            .name(METRIC_PREFIX + FSIZE)
             .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
             .help("Counts file size distribution in buckets, showing small files and size distribution. " +
                     "Bucket label is upper size in bytes").register();
@@ -150,16 +155,16 @@ public class HfsaFsImageCollector extends Collector {
     // By user
     static final String METRIC_PREFIX_USER = METRIC_PREFIX + "user_";
     static final Gauge METRIC_USER_SUM_DIRS = Gauge.build()
-            .name(METRIC_PREFIX_USER + "dir_count")
-            .labelNames("user_name")
+            .name(METRIC_PREFIX_USER + DIRS_COUNT)
+            .labelNames(LABEL_USER_NAME)
             .help("Number of directories.").register();
     static final Gauge METRIC_USER_SUM_BLOCKS = Gauge.build()
-            .name(METRIC_PREFIX_USER + "block_count")
-            .labelNames("user_name")
+            .name(METRIC_PREFIX_USER + BLOCKS_COUNT)
+            .labelNames(LABEL_USER_NAME)
             .help("Number of blocks.").register();
     static final Histogram METRIC_USER_FILE_SIZE_BUCKETS = Histogram.build()
-            .name(METRIC_PREFIX_USER + "fsize")
-            .labelNames("user_name")
+            .name(METRIC_PREFIX_USER + FSIZE)
+            .labelNames(LABEL_USER_NAME)
             .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
             .help("Counts file size distribution in buckets, showing small files and size distribution. " +
                     "Bucket label is upper size in bytes").register();
@@ -167,15 +172,15 @@ public class HfsaFsImageCollector extends Collector {
     // By group
     static final String METRIC_PREFIX_GROUP = METRIC_PREFIX + "group_";
     static final Gauge METRIC_GROUP_SUM_DIRS = Gauge.build()
-            .name(METRIC_PREFIX_GROUP + "dir_count")
+            .name(METRIC_PREFIX_GROUP + DIRS_COUNT)
             .labelNames("group_name")
             .help("Number of directories.").register();
     static final Gauge METRIC_GROUP_SUM_BLOCKS = Gauge.build()
-            .name(METRIC_PREFIX_GROUP + "block_count")
+            .name(METRIC_PREFIX_GROUP + BLOCKS_COUNT)
             .labelNames("group_name")
             .help("Number of blocks.").register();
     static final Histogram METRIC_GROUP_FILE_SIZE_BUCKETS = Histogram.build()
-            .name(METRIC_PREFIX_GROUP + "fsize")
+            .name(METRIC_PREFIX_GROUP + FSIZE)
             .labelNames("group_name")
             .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
             .help("Counts file size distribution in buckets, showing small files and size distribution. " +
@@ -207,7 +212,7 @@ public class HfsaFsImageCollector extends Collector {
         RandomAccessFile raFile = new RandomAccessFile(fsImageFile, "r");
         final FSImageLoader loader = FSImageLoader.load(raFile);
 
-        LOGGER.info("Visting ...");
+        LOGGER.info("Visiting ...");
         long start = System.currentTimeMillis();
         Report report = computeStats(loader);
         LOGGER.info("Visiting finished [{}ms].", System.currentTimeMillis() - start);
@@ -300,7 +305,7 @@ public class HfsaFsImageCollector extends Collector {
 
     public List<MetricFamilySamples> collect() {
         METRIC_SCRAPE_REQUESTS.inc();
-        try(Gauge.Timer timer = METRIC_SCRAPE_DURATION.startTimer()) {
+        try (Gauge.Timer timer = METRIC_SCRAPE_DURATION.startTimer()) {
             scrape();
         } catch (Exception e) {
             METRIC_SCRAPE_ERROR.inc();
