@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -35,9 +38,14 @@ public class HfsaFsImageCollector extends Collector {
     private static final Gauge METRIC_SCRAPE_DURATION = Gauge.build()
             .name(METRIC_PREFIX + "scrape_duration_seconds")
             .help("Scrape duration").register();
+    private static final Gauge METRIC_EXPORTER_HEAP = Gauge.build()
+            .name(METRIC_PREFIX + "jvm_heap_bytes")
+            .labelNames("heap_type")
+            .help("Exporter JVM heap").register();
 
     private String lastFsImageScraped = "";
     final Config config;
+    final MemoryMXBean memoryMXBean;
 
     /**
      * Sorts descending by file name.
@@ -64,6 +72,7 @@ public class HfsaFsImageCollector extends Collector {
         }
 
         this.config = config;
+        memoryMXBean =  ManagementFactory.getMemoryMXBean();
     }
 
     static class FSImageFilenameFilter implements FilenameFilter {
@@ -342,9 +351,13 @@ public class HfsaFsImageCollector extends Collector {
     }
 
     public List<MetricFamilySamples> collect() {
-        METRIC_SCRAPE_REQUESTS.inc();
         try (Gauge.Timer timer = METRIC_SCRAPE_DURATION.startTimer()) {
+            METRIC_SCRAPE_REQUESTS.inc();
             scrape();
+
+            final MemoryUsage heapMemoryUsage = memoryMXBean.getHeapMemoryUsage();
+            METRIC_EXPORTER_HEAP.labels("max").set(heapMemoryUsage.getMax());
+            METRIC_EXPORTER_HEAP.labels("used").set(heapMemoryUsage.getUsed());
         } catch (Exception e) {
             METRIC_SCRAPE_ERROR.inc();
             LOGGER.error("FSImage scrape failed", e);
