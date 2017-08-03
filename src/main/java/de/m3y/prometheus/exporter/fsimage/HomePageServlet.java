@@ -6,16 +6,20 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Displays a welcome page containing build info and link to metrics.
+ */
 public class HomePageServlet extends HttpServlet {
 
-    final private Config config;
-    final private BuildInfoExporter buildInfoExporter;
+    private final Config config;
+    private final BuildInfoExporter buildInfoExporter;
 
     public HomePageServlet(Config config, BuildInfoExporter buildInfoExporter) {
         this.config = config;
         this.buildInfoExporter = buildInfoExporter;
     }
 
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html");
         resp.getWriter().print("<html>\n"

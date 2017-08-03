@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 
 import de.m3y.hadoop.hdfs.hfsa.core.FSImageLoader;
 import de.m3y.hadoop.hdfs.hfsa.core.FsVisitor;
-import de.m3y.hadoop.hdfs.hfsa.util.SizeBucket;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
@@ -68,7 +67,7 @@ public class HfsaFsImageCollector extends Collector {
     }
 
     static class FSImageFilenameFilter implements FilenameFilter {
-        final static Pattern FS_IMAGE_PATTERN = Pattern.compile("fsimage_\\d+");
+        static final Pattern FS_IMAGE_PATTERN = Pattern.compile("fsimage_\\d+");
 
         @Override
         public boolean accept(File dir, String name) {
@@ -95,8 +94,7 @@ public class HfsaFsImageCollector extends Collector {
         final File latestImageFile = files[0];
         // Skip, as metrics already reflect the info from previous scrape
         if (config.isSkipPreviouslyParsed() && lastFsImageScraped.equals(latestImageFile.getAbsolutePath())) {
-            LOGGER.info("Skipping scrape of " + lastFsImageScraped
-                    + ", as fsimage has already been previously processed");
+            LOGGER.info("Skipping previously scraped and processed fsimage {}", lastFsImageScraped);
             METRIC_SCRAPE_SKIPS.inc();
         } else {
             scrape(latestImageFile);
@@ -212,7 +210,7 @@ public class HfsaFsImageCollector extends Collector {
         LOGGER.info("Visting ...");
         long start = System.currentTimeMillis();
         Report report = computeStats(loader);
-        LOGGER.info("Visiting finished [" + (System.currentTimeMillis() - start) + "ms].");
+        LOGGER.info("Visiting finished [{}ms].", System.currentTimeMillis() - start);
 
         // Overall stats
         OverallStats overallStats = report.overallStats;
@@ -301,14 +299,12 @@ public class HfsaFsImageCollector extends Collector {
     }
 
     public List<MetricFamilySamples> collect() {
-        long startTime = System.currentTimeMillis();
-
         METRIC_SCRAPE_REQUESTS.inc();
         try(Gauge.Timer timer = METRIC_SCRAPE_DURATION.startTimer()) {
             scrape();
         } catch (Exception e) {
             METRIC_SCRAPE_ERROR.inc();
-            LOGGER.warn("FSImage scrape failed", e);
+            LOGGER.error("FSImage scrape failed", e);
         }
 
         return Collections.emptyList(); // Directly registered counters
