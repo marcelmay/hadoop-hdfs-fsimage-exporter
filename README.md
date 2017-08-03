@@ -66,6 +66,7 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
 * Release 1.0
 * Export the exporter JVM heap usage, for exporter fine tuning
 * Export additionally to total/user/group the stats also for a configurable list of directories
+* Make histogram buckets configurable
 * Logging conf
 * Docker image
 * Example Grafana dashboard?
@@ -80,53 +81,53 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
 Here's the example output for the [test fsimage](src/test/resources/fsimage_0001):
 
 ```
-# HELP fsimage_dirs_count Number of directories.
-# TYPE fsimage_dirs_count gauge
-fsimage_dirs_count 14.0
+# HELP fsimage_dirs Number of directories.
+# TYPE fsimage_dirs gauge
+fsimage_dirs 14.0
 # HELP fsimage_scrape_requests_total Exporter requests made
 # TYPE fsimage_scrape_requests_total counter
 fsimage_scrape_requests_total 1.0
 # HELP fsimage_scrape_duration_seconds Scrape duration
 # TYPE fsimage_scrape_duration_seconds gauge
-fsimage_scrape_duration_seconds 0.163850832
-# HELP fsimage_user_blocks_count Number of blocks.
-# TYPE fsimage_user_blocks_count gauge
-fsimage_user_blocks_count{user_name="foo",} 2.0
-fsimage_user_blocks_count{user_name="root",} 1.0
-fsimage_user_blocks_count{user_name="mm",} 14.0
-# HELP fsimage_links_count Number of sym links.
-# TYPE fsimage_links_count gauge
-fsimage_links_count 0.0
-# HELP fsimage_group_links_count Number of sym links.
-# TYPE fsimage_group_links_count gauge
-fsimage_group_links_count{group_name="root",} 0.0
-fsimage_group_links_count{group_name="supergroup",} 0.0
-fsimage_group_links_count{group_name="nobody",} 0.0
+fsimage_scrape_duration_seconds 0.108289738
+# HELP fsimage_user_blocks Number of blocks.
+# TYPE fsimage_user_blocks gauge
+fsimage_user_blocks{user_name="foo",} 2.0
+fsimage_user_blocks{user_name="root",} 1.0
+fsimage_user_blocks{user_name="mm",} 14.0
+# HELP fsimage_links Number of sym links.
+# TYPE fsimage_links gauge
+fsimage_links 0.0
+# HELP fsimage_group_links Number of sym links.
+# TYPE fsimage_group_links gauge
+fsimage_group_links{group_name="root",} 0.0
+fsimage_group_links{group_name="supergroup",} 0.0
+fsimage_group_links{group_name="nobody",} 0.0
 # HELP fsimage_scrape_skips_total Counts the fsimage scrape skips (no fsimage change).
 # TYPE fsimage_scrape_skips_total counter
 fsimage_scrape_skips_total 1.0
-# HELP fsimage_blocks_count Number of blocks.
-# TYPE fsimage_blocks_count gauge
-fsimage_blocks_count 18.0
-# HELP fsimage_group_dirs_count Number of directories.
-# TYPE fsimage_group_dirs_count gauge
-fsimage_group_dirs_count{group_name="root",} 0.0
-fsimage_group_dirs_count{group_name="supergroup",} 14.0
-fsimage_group_dirs_count{group_name="nobody",} 0.0
-# HELP fsimage_user_dirs_count Number of directories.
-# TYPE fsimage_user_dirs_count gauge
-fsimage_user_dirs_count{user_name="foo",} 0.0
-fsimage_user_dirs_count{user_name="root",} 0.0
-fsimage_user_dirs_count{user_name="mm",} 14.0
-# HELP fsimage_group_blocks_count Number of blocks.
-# TYPE fsimage_group_blocks_count gauge
-fsimage_group_blocks_count{group_name="root",} 1.0
-fsimage_group_blocks_count{group_name="supergroup",} 13.0
-fsimage_group_blocks_count{group_name="nobody",} 3.0
+# HELP fsimage_blocks Number of blocks.
+# TYPE fsimage_blocks gauge
+fsimage_blocks 18.0
+# HELP fsimage_group_dirs Number of directories.
+# TYPE fsimage_group_dirs gauge
+fsimage_group_dirs{group_name="root",} 0.0
+fsimage_group_dirs{group_name="supergroup",} 14.0
+fsimage_group_dirs{group_name="nobody",} 0.0
+# HELP fsimage_user_dirs Number of directories.
+# TYPE fsimage_user_dirs gauge
+fsimage_user_dirs{user_name="foo",} 0.0
+fsimage_user_dirs{user_name="root",} 0.0
+fsimage_user_dirs{user_name="mm",} 14.0
+# HELP fsimage_group_blocks Number of blocks.
+# TYPE fsimage_group_blocks gauge
+fsimage_group_blocks{group_name="root",} 1.0
+fsimage_group_blocks{group_name="supergroup",} 13.0
+fsimage_group_blocks{group_name="nobody",} 3.0
 # HELP fsimage_exporter_app_info Application build info
 # TYPE fsimage_exporter_app_info gauge
-fsimage_exporter_app_info{appName="fsimage_exporter",appVersion="1.0-SNAPSHOT",buildTime="2017-08-03/20:29",buildScmVersion="b1dfdeb1eda1bc829e029a19bc7bb892811edd3f",buildScmBranch="master",} 1.0
-# HELP fsimage_group_fsize Counts file size distribution in buckets, showing small files and size distribution. Bucket label is upper size in bytes
+fsimage_exporter_app_info{appName="fsimage_exporter",appVersion="1.0-SNAPSHOT",buildTime="2017-08-03/21:02",buildScmVersion="935b62c43cba69cb820bc15c68422716ce5c25de",buildScmBranch="master",} 1.0
+# HELP fsimage_group_fsize Per group file size distribution.
 # TYPE fsimage_group_fsize histogram
 fsimage_group_fsize_bucket{group_name="root",le="0.0",} 0.0
 fsimage_group_fsize_bucket{group_name="root",le="1048576.0",} 1.0
@@ -158,7 +159,7 @@ fsimage_group_fsize_bucket{group_name="nobody",le="1.073741824E10",} 2.0
 fsimage_group_fsize_bucket{group_name="nobody",le="+Inf",} 2.0
 fsimage_group_fsize_count{group_name="nobody",} 2.0
 fsimage_group_fsize_sum{group_name="nobody",} 1.8874368E8
-# HELP fsimage_fsize Counts file size distribution in buckets, showing small files and size distribution. Bucket label is upper size in bytes
+# HELP fsimage_fsize Overall file size distribution
 # TYPE fsimage_fsize histogram
 fsimage_fsize_bucket{le="0.0",} 0.0
 fsimage_fsize_bucket{le="1048576.0",} 4.0
@@ -170,15 +171,15 @@ fsimage_fsize_bucket{le="1.073741824E10",} 16.0
 fsimage_fsize_bucket{le="+Inf",} 16.0
 fsimage_fsize_count 16.0
 fsimage_fsize_sum 3.56409344E8
-# HELP fsimage_user_links_count Number of sym links.
-# TYPE fsimage_user_links_count gauge
-fsimage_user_links_count{user_name="foo",} 0.0
-fsimage_user_links_count{user_name="root",} 0.0
-fsimage_user_links_count{user_name="mm",} 0.0
+# HELP fsimage_user_links Number of sym links.
+# TYPE fsimage_user_links gauge
+fsimage_user_links{user_name="foo",} 0.0
+fsimage_user_links{user_name="root",} 0.0
+fsimage_user_links{user_name="mm",} 0.0
 # HELP fsimage_scrape_errors_total Counts failed scrapes.
 # TYPE fsimage_scrape_errors_total counter
 fsimage_scrape_errors_total 0.0
-# HELP fsimage_user_fsize Counts file size distribution in buckets, showing small files and size distribution. Bucket label is upper size in bytes
+# HELP fsimage_user_fsize Per user file size distribution
 # TYPE fsimage_user_fsize histogram
 fsimage_user_fsize_bucket{user_name="root",le="0.0",} 0.0
 fsimage_user_fsize_bucket{user_name="root",le="1048576.0",} 1.0

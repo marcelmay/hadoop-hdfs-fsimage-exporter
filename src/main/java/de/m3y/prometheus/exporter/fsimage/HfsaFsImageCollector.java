@@ -136,69 +136,70 @@ public class HfsaFsImageCollector extends Collector {
             10L * SIZE_1_GIB /* 10 GiB */
     };
 
-    private static final String DIRS_COUNT = "dirs_count";
-    private static final String BLOCKS_COUNT = "blocks_count";
-    public static final String FSIZE = "fsize";
+    private static final String METRIC_POSTFIX_DIRS = "dirs";
+    private static final String METRIC_POSTFIX_BLOCKS = "blocks";
+    private static final String METRIC_POSTFIX_LINKS = "links";
+    private static final String FSIZE = "fsize";
     private static final String LABEL_USER_NAME = "user_name";
 
     // Overall
     static final Gauge METRIC_SUM_DIRS = Gauge.build()
-            .name(METRIC_PREFIX + DIRS_COUNT)
+            .name(METRIC_PREFIX + METRIC_POSTFIX_DIRS)
             .help("Number of directories.").register();
     static final Gauge METRIC_SUM_LINKS = Gauge.build()
-            .name(METRIC_PREFIX + "links_count")
+            .name(METRIC_PREFIX + METRIC_POSTFIX_LINKS)
             .help("Number of sym links.").register();
     static final Gauge METRIC_SUM_BLOCKS = Gauge.build()
-            .name(METRIC_PREFIX + BLOCKS_COUNT)
+            .name(METRIC_PREFIX + METRIC_POSTFIX_BLOCKS)
             .help("Number of blocks.").register();
     static final Histogram METRIC_FILE_SIZE_BUCKETS = Histogram.build()
             .name(METRIC_PREFIX + FSIZE)
             .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
-            .help("Counts file size distribution in buckets, showing small files and size distribution. " +
-                    "Bucket label is upper size in bytes").register();
+            .help("Overall file size distribution")
+            .register();
 
 
     // By user
     static final String METRIC_PREFIX_USER = METRIC_PREFIX + "user_";
     static final Gauge METRIC_USER_SUM_DIRS = Gauge.build()
-            .name(METRIC_PREFIX_USER + DIRS_COUNT)
+            .name(METRIC_PREFIX_USER + METRIC_POSTFIX_DIRS)
             .labelNames(LABEL_USER_NAME)
             .help("Number of directories.").register();
     static final Gauge METRIC_USER_SUM_LINKS = Gauge.build()
-            .name(METRIC_PREFIX_USER + "links_count")
+            .name(METRIC_PREFIX_USER + METRIC_POSTFIX_LINKS)
             .labelNames(LABEL_USER_NAME)
             .help("Number of sym links.").register();
     static final Gauge METRIC_USER_SUM_BLOCKS = Gauge.build()
-            .name(METRIC_PREFIX_USER + BLOCKS_COUNT)
+            .name(METRIC_PREFIX_USER + METRIC_POSTFIX_BLOCKS)
             .labelNames(LABEL_USER_NAME)
             .help("Number of blocks.").register();
     static final Histogram METRIC_USER_FILE_SIZE_BUCKETS = Histogram.build()
             .name(METRIC_PREFIX_USER + FSIZE)
             .labelNames(LABEL_USER_NAME)
             .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
-            .help("Counts file size distribution in buckets, showing small files and size distribution. " +
-                    "Bucket label is upper size in bytes").register();
+            .help("Per user file size distribution")
+            .register();
 
     // By group
     static final String METRIC_PREFIX_GROUP = METRIC_PREFIX + "group_";
     static final Gauge METRIC_GROUP_SUM_DIRS = Gauge.build()
-            .name(METRIC_PREFIX_GROUP + DIRS_COUNT)
+            .name(METRIC_PREFIX_GROUP + METRIC_POSTFIX_DIRS)
             .labelNames("group_name")
             .help("Number of directories.").register();
     static final Gauge METRIC_GROUP_SUM_LINKS = Gauge.build()
-            .name(METRIC_PREFIX_GROUP + "links_count")
+            .name(METRIC_PREFIX_GROUP + METRIC_POSTFIX_LINKS)
             .labelNames("group_name")
             .help("Number of sym links.").register();
     static final Gauge METRIC_GROUP_SUM_BLOCKS = Gauge.build()
-            .name(METRIC_PREFIX_GROUP + BLOCKS_COUNT)
+            .name(METRIC_PREFIX_GROUP + METRIC_POSTFIX_BLOCKS)
             .labelNames("group_name")
             .help("Number of blocks.").register();
     static final Histogram METRIC_GROUP_FILE_SIZE_BUCKETS = Histogram.build()
             .name(METRIC_PREFIX_GROUP + FSIZE)
             .labelNames("group_name")
             .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
-            .help("Counts file size distribution in buckets, showing small files and size distribution. " +
-                    "Bucket label is upper size in bytes").register();
+            .help("Per group file size distribution.")
+            .register();
 
     static class OverallStats {
         long sumDirectories;
