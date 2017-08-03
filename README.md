@@ -23,6 +23,8 @@ For running:
 
 ```mvn clean install```
 
+You can test the exporter using [run_example.sh](run_example.sh) after building.
+
 ## Installation and configuration
 
 * Install the JAR on a system where the FSImage is locally available (eg name node server).
