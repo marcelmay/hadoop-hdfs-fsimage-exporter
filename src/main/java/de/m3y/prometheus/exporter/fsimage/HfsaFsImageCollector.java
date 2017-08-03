@@ -26,10 +26,10 @@ public class HfsaFsImageCollector extends Collector {
     private static final Counter METRIC_SCRAPE_REQUESTS = Counter.build()
             .name(METRIC_PREFIX + "scrape_requests_total")
             .help("Exporter requests made").register();
-    private static final Gauge METRIC_SCRAPE_ERROR = Gauge.build()
+    private static final Counter METRIC_SCRAPE_ERROR = Counter.build()
             .name(METRIC_PREFIX + "scrape_error_total")
-            .help("Non-zero if this scrape failed.").register();
-    private static final Gauge METRIC_SCRAPE_SKIPS = Gauge.build()
+            .help("Counts failed scrapes.").register();
+    private static final Counter METRIC_SCRAPE_SKIPS = Counter.build()
             .name(METRIC_PREFIX + "scrape_skip_total")
             .help("Counts the fsimage scrapes skips, as the fsimage is versioned and got already processed.").register();
     private static final Gauge METRIC_SCRAPE_DURATION = Gauge.build()
@@ -325,16 +325,14 @@ public class HfsaFsImageCollector extends Collector {
     public List<MetricFamilySamples> collect() {
         long startTime = System.currentTimeMillis();
         METRIC_SCRAPE_REQUESTS.inc();
-        double error = 0;
         try {
             scrape();
         } catch (Exception e) {
-            error = 1;
+            METRIC_SCRAPE_ERROR.inc();
             LOGGER.warn("FSImage scrape failed", e);
         }
 
         METRIC_SCRAPE_DURATION.set((System.currentTimeMillis() - startTime));
-        METRIC_SCRAPE_ERROR.set(error);
 
         return Collections.emptyList(); // Directly registered counters
     }
