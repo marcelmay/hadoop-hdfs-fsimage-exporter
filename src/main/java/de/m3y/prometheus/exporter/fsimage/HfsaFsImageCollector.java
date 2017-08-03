@@ -106,6 +106,7 @@ public class HfsaFsImageCollector extends Collector {
         final String userName;
         long sumBlocks;
         long sumDirectories;
+        long sumSymLinks;
 
         UserStats(String userName) {
             this.userName = userName;
@@ -116,6 +117,7 @@ public class HfsaFsImageCollector extends Collector {
         final String groupName;
         long sumBlocks;
         long sumDirectories;
+        long sumSymLinks;
 
         GroupStats(String groupName) {
             this.groupName = groupName;
@@ -139,9 +141,13 @@ public class HfsaFsImageCollector extends Collector {
     public static final String FSIZE = "fsize";
     private static final String LABEL_USER_NAME = "user_name";
 
+    // Overall
     static final Gauge METRIC_SUM_DIRS = Gauge.build()
             .name(METRIC_PREFIX + DIRS_COUNT)
             .help("Number of directories.").register();
+    static final Gauge METRIC_SUM_LINKS = Gauge.build()
+            .name(METRIC_PREFIX + "links_count")
+            .help("Number of sym links.").register();
     static final Gauge METRIC_SUM_BLOCKS = Gauge.build()
             .name(METRIC_PREFIX + BLOCKS_COUNT)
             .help("Number of blocks.").register();
@@ -158,6 +164,10 @@ public class HfsaFsImageCollector extends Collector {
             .name(METRIC_PREFIX_USER + DIRS_COUNT)
             .labelNames(LABEL_USER_NAME)
             .help("Number of directories.").register();
+    static final Gauge METRIC_USER_SUM_LINKS = Gauge.build()
+            .name(METRIC_PREFIX_USER + "links_count")
+            .labelNames(LABEL_USER_NAME)
+            .help("Number of sym links.").register();
     static final Gauge METRIC_USER_SUM_BLOCKS = Gauge.build()
             .name(METRIC_PREFIX_USER + BLOCKS_COUNT)
             .labelNames(LABEL_USER_NAME)
@@ -175,6 +185,10 @@ public class HfsaFsImageCollector extends Collector {
             .name(METRIC_PREFIX_GROUP + DIRS_COUNT)
             .labelNames("group_name")
             .help("Number of directories.").register();
+    static final Gauge METRIC_GROUP_SUM_LINKS = Gauge.build()
+            .name(METRIC_PREFIX_GROUP + "links_count")
+            .labelNames("group_name")
+            .help("Number of sym links.").register();
     static final Gauge METRIC_GROUP_SUM_BLOCKS = Gauge.build()
             .name(METRIC_PREFIX_GROUP + BLOCKS_COUNT)
             .labelNames("group_name")
@@ -189,6 +203,7 @@ public class HfsaFsImageCollector extends Collector {
     static class OverallStats {
         long sumDirectories;
         long sumBlocks;
+        long sumSymLinks;
     }
 
     static class Report {
@@ -220,6 +235,7 @@ public class HfsaFsImageCollector extends Collector {
         // Overall stats
         OverallStats overallStats = report.overallStats;
         METRIC_SUM_DIRS.set(overallStats.sumDirectories);
+        METRIC_SUM_LINKS.set(overallStats.sumSymLinks);
         METRIC_SUM_BLOCKS.set(overallStats.sumBlocks);
         METRIC_SUM_BLOCKS.inc();
 
@@ -227,6 +243,7 @@ public class HfsaFsImageCollector extends Collector {
         for (UserStats userStat : report.userStats.values()) {
             String[] labelValues = new String[]{userStat.userName};
             METRIC_USER_SUM_DIRS.labels(labelValues).set(userStat.sumDirectories);
+            METRIC_USER_SUM_LINKS.labels(labelValues).set(userStat.sumSymLinks);
             METRIC_USER_SUM_BLOCKS.labels(labelValues).set(userStat.sumBlocks);
         }
 
@@ -234,6 +251,7 @@ public class HfsaFsImageCollector extends Collector {
         for (GroupStats groupStat : report.groupStats.values()) {
             String[] labelValues = new String[]{groupStat.groupName};
             METRIC_GROUP_SUM_DIRS.labels(labelValues).set(groupStat.sumDirectories);
+            METRIC_GROUP_SUM_LINKS.labels(labelValues).set(groupStat.sumSymLinks);
             METRIC_GROUP_SUM_BLOCKS.labels(labelValues).set(groupStat.sumBlocks);
         }
     }
@@ -297,7 +315,26 @@ public class HfsaFsImageCollector extends Collector {
 
             @Override
             public void onSymLink(FsImageProto.INodeSection.INode inode, String path) {
-                // TODO ?
+                FsImageProto.INodeSection.INodeSymlink d = inode.getSymlink();
+                PermissionStatus p = loader.getPermissionStatus(d.getPermission());
+
+                // Group stats
+                final String groupName = p.getGroupName();
+                final GroupStats groupStat = report.groupStats.computeIfAbsent(groupName, GroupStats::new);
+                synchronized (groupStat) {
+                    groupStat.sumSymLinks++;
+                }
+
+                // User stats
+                final String userName = p.getUserName();
+                final UserStats user = report.userStats.computeIfAbsent(userName, UserStats::new);
+                synchronized (user) {
+                    user.sumSymLinks++;
+                }
+
+                synchronized (overallStats) {
+                    overallStats.sumSymLinks++;
+                }
             }
         });
         return report;
