@@ -14,15 +14,15 @@
     <url>https://github.com/marcelmay/hadoop-fsimage-exporter.git</url>
 
     <scm>
-        <connection>scm:git:https://github.com/marcelmay/hadoop-fsimage-exporter.git</connection>
-        <developerConnection>scm:git:git@github.com:marcelmay/hadoop-fsimage-exporter.git</developerConnection>
-        <url>https://github.com/marcelmay/hadoop-fsimage-exporter</url>
+        <connection>scm:git:https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter.git</connection>
+        <developerConnection>scm:git:git@github.com:marcelmay/hadoop-hdfs-fsimage-exporter.git</developerConnection>
+        <url>https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter</url>
         <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
         <system>github</system>
-        <url>https://github.com/marcelmay/hadoop-fsimage-exporter/issues</url>
+        <url>https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter/issues</url>
     </issueManagement>
 
     <licenses>
