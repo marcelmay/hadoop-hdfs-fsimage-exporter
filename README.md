@@ -9,6 +9,14 @@ Exports Hadoop HDFS statistics to [Prometheus monitoring](https://prometheus.io/
     * number of blocks
     
 The exporter parses the FSImage using the [Hadoop FSImage Analysis library](https://github.com/marcelmay/hfsa).
+This approach has the advantage of
+* being fast (2GB FSImage ~ 100s)
+* adding no heavy additional load on HDFS NameNode (no NameNode queries, you can run it on 2nd NameNode)
+
+The disadvantage is
+* no real time update, only about every 6h when NameNode writes FSImage. But should be sufficient for most cases (long term trend, detecting HDFS small file abuses, user and group stats)
+
+![FSImage Exporter overview](fsimage_exporter.png)
 
 ## Requirements
 For building:
