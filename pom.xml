@@ -11,7 +11,7 @@
     <description>Hadoop HDFS FSImage Exporter allows exporting HDFS statistics for Prometheus from the Hadoop HDFS
         FSImage file snapshots.
     </description>
-    <url>https://github.com/marcelmay/hadoop-fsimage-exporter.git</url>
+    <url>https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter.git</url>
 
     <scm>
         <connection>scm:git:https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter.git</connection>
