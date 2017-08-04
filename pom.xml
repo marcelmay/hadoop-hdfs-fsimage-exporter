@@ -7,6 +7,7 @@
     <artifactId>fsimage-exporter</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <name>Hadoop HDFS FSImage Exporter</name>
 
     <description>Hadoop HDFS FSImage Exporter allows exporting HDFS statistics for Prometheus from the Hadoop HDFS
         FSImage file snapshots.
