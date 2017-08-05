@@ -61,17 +61,20 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
 * Add to prometheus
   ```
   - job_name: 'fsimage'
-      scrape_interval: 180m # Depends on how often the name node writes a fsimage file
+      scrape_interval: 180m # Depends on how often the name node writes a fsimage file.
       scrape_timeout:  200s # Depends on size
       static_configs:
         - targets: ['<hostname>:<port>']
           labels:
             ...
   ```
+  Note:  
+  For Grafana, you want to sample more often with a scrape interval of minutes.
+  The exporter caches previously parsed FSImage, so it is a fast operation.
 
 ## Roadmap
 
-* Release 1.0
+Release 1.1:
 * Export additionally to total/user/group the stats also for a configurable list of directories
 * Make histogram buckets configurable
 * Logging conf
