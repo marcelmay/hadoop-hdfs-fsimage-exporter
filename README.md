@@ -1,6 +1,8 @@
 Prometheus Hadoop HDFS FSImage Exporter
 =======
 
+[![Maven Central](https://img.shields.io/maven-central/v/de.m3y.prometheus.exporter.fsimage/fsimage-exporter.svg?style=flat-square)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.m3y.prometheus.exporter.fsimage%22%20AND%20a%3A%22fsimage-exporter%22)
+
 Exports Hadoop HDFS statistics to [Prometheus monitoring](https://prometheus.io/) including
 * total / per user / per group
     * number of directories
