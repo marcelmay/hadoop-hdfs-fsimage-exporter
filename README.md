@@ -76,9 +76,7 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
 
 ## Roadmap
 
-Release 1.1:
-* Export additionally to total/user/group the stats also for a configurable list of directories
-* Make histogram buckets configurable
+Release 1.1+ (see issues):
 * Logging conf
 * Docker image
 * Example Grafana dashboard?
