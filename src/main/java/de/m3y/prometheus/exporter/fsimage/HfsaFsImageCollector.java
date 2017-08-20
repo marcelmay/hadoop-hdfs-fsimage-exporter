@@ -1,14 +1,14 @@
 package de.m3y.prometheus.exporter.fsimage;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.*;
-import java.util.regex.Pattern;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import de.m3y.hadoop.hdfs.hfsa.core.FSImageLoader;
 import de.m3y.hadoop.hdfs.hfsa.core.FsVisitor;
@@ -32,9 +32,7 @@ public class HfsaFsImageCollector extends Collector {
     private static final Counter METRIC_SCRAPE_ERROR = Counter.build()
             .name(METRIC_PREFIX + "scrape_errors_total")
             .help("Counts failed scrapes.").register();
-    private static final Counter METRIC_SCRAPE_SKIPS = Counter.build()
-            .name(METRIC_PREFIX + "scrape_skips_total")
-            .help("Counts the fsimage scrape skips (no fsimage change).").register();
+
     private static final Gauge METRIC_SCRAPE_DURATION = Gauge.build()
             .name(METRIC_PREFIX + "scrape_duration_seconds")
             .help("Scrape duration").register();
@@ -43,73 +41,9 @@ public class HfsaFsImageCollector extends Collector {
             .labelNames("heap_type")
             .help("Exporter JVM heap").register();
 
-    private String lastFsImageScraped = "";
     final Config config;
     final MemoryMXBean memoryMXBean;
-
-    /**
-     * Sorts descending by file name.
-     */
-    public static final Comparator<File> FSIMAGE_FILENAME_COMPARATOR = new Comparator<File>() {
-        @Override
-        public int compare(File o1, File o2) {
-            return o2.getName().compareTo(o1.getName());
-        }
-    };
-
-    private final File fsImageDir;
-
-
-    HfsaFsImageCollector(Config config) {
-        final String path = config.getFsImagePath();
-        if (null == path || path.isEmpty()) {
-            throw new IllegalArgumentException("Must provide the directory location to the FSImage snapshots");
-        }
-
-        fsImageDir = new File(path);
-        if (!fsImageDir.exists()) {
-            throw new IllegalArgumentException(fsImageDir.getAbsolutePath() + " does not exist");
-        }
-
-        this.config = config;
-        memoryMXBean =  ManagementFactory.getMemoryMXBean();
-    }
-
-    static class FSImageFilenameFilter implements FilenameFilter {
-        static final Pattern FS_IMAGE_PATTERN = Pattern.compile("fsimage_\\d+");
-
-        @Override
-        public boolean accept(File dir, String name) {
-            return FS_IMAGE_PATTERN.matcher(name).matches();
-        }
-    }
-
-    static final FilenameFilter FSIMAGE_FILTER = new FSImageFilenameFilter();
-
-    private void scrape() throws IOException {
-        // Check dir
-        if (!fsImageDir.exists()) {
-            throw new IllegalArgumentException(fsImageDir.getAbsolutePath() + " doest not exist");
-        }
-
-        final File[] files = fsImageDir.listFiles(FSIMAGE_FILTER);
-        if (null == files || files.length == 0) {
-            throw new IllegalStateException("No fsimage files found in " + fsImageDir.getAbsolutePath()
-                    + " matching " + FSImageFilenameFilter.FS_IMAGE_PATTERN);
-        }
-
-        Arrays.sort(files, FSIMAGE_FILENAME_COMPARATOR);
-
-        final File latestImageFile = files[0];
-        // Skip, as metrics already reflect the info from previous scrape
-        if (config.isSkipPreviouslyParsed() && lastFsImageScraped.equals(latestImageFile.getAbsolutePath())) {
-            LOGGER.info("Skipping previously scraped and processed fsimage {}", lastFsImageScraped);
-            METRIC_SCRAPE_SKIPS.inc();
-        } else {
-            scrape(latestImageFile);
-        }
-        lastFsImageScraped = latestImageFile.getAbsolutePath();
-    }
+    final FsImageWatcher fsImageWatcher;
 
     static class UserStats {
         final String userName;
@@ -228,14 +162,30 @@ public class HfsaFsImageCollector extends Collector {
         }
     }
 
-    private void scrape(File fsImageFile) throws IOException {
-        LOGGER.info("Parsing " + fsImageFile.getName());
+    HfsaFsImageCollector(Config config) {
+        this.config = config;
+        memoryMXBean = ManagementFactory.getMemoryMXBean();
+
+        final String path = config.getFsImagePath();
+        if (null == path || path.isEmpty()) {
+            throw new IllegalArgumentException("Must provide the directory location to the FSImage snapshots");
+        }
+
+        File fsImageDir = new File(path);
+        if (!fsImageDir.exists()) {
+            throw new IllegalArgumentException(fsImageDir.getAbsolutePath() + " does not exist");
+        }
+        fsImageWatcher = new FsImageWatcher(fsImageDir, config.isSkipPreviouslyParsed());
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleWithFixedDelay(fsImageWatcher, 60, 60, TimeUnit.SECONDS);
+    }
+
+    private void scrape() throws IOException {
         METRIC_GROUP_FILE_SIZE_BUCKETS.clear();
         METRIC_USER_FILE_SIZE_BUCKETS.clear();
         METRIC_FILE_SIZE_BUCKETS.clear();
 
-        RandomAccessFile raFile = new RandomAccessFile(fsImageFile, "r");
-        final FSImageLoader loader = FSImageLoader.load(raFile);
+        final FSImageLoader loader = fsImageWatcher.getFSImageLoader();
 
         LOGGER.info("Visiting ...");
         long start = System.currentTimeMillis();
