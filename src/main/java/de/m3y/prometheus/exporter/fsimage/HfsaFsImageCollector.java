@@ -1,9 +1,6 @@
 package de.m3y.prometheus.exporter.fsimage;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryUsage;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -33,13 +30,8 @@ public class HfsaFsImageCollector extends Collector {
     private static final Gauge METRIC_SCRAPE_DURATION = Gauge.build()
             .name(METRIC_PREFIX + "scrape_duration_seconds")
             .help("Scrape duration").register();
-    private static final Gauge METRIC_EXPORTER_HEAP = Gauge.build()
-            .name(METRIC_PREFIX + "jvm_heap_bytes")
-            .labelNames("heap_type")
-            .help("Exporter JVM heap").register();
 
     final Config config;
-    final MemoryMXBean memoryMXBean;
     final FsImageWatcher fsImageWatcher;
 
 
@@ -122,7 +114,6 @@ public class HfsaFsImageCollector extends Collector {
 
     HfsaFsImageCollector(Config config) {
         this.config = config;
-        memoryMXBean = ManagementFactory.getMemoryMXBean();
 
         final String path = config.getFsImagePath();
         if (null == path || path.isEmpty()) {
@@ -162,7 +153,7 @@ public class HfsaFsImageCollector extends Collector {
         }
 
         // Signal error, if background thread ran into error
-        if(currentReport.error) {
+        if (currentReport.error) {
             METRIC_SCRAPE_ERROR.inc();
         }
     }
@@ -183,10 +174,6 @@ public class HfsaFsImageCollector extends Collector {
                 }
             }
             setMetricsFromReport();
-
-            final MemoryUsage heapMemoryUsage = memoryMXBean.getHeapMemoryUsage();
-            METRIC_EXPORTER_HEAP.labels("max").set(heapMemoryUsage.getMax());
-            METRIC_EXPORTER_HEAP.labels("used").set(heapMemoryUsage.getUsed());
         } catch (Exception e) {
             METRIC_SCRAPE_ERROR.inc();
             LOGGER.error("FSImage scrape failed", e);

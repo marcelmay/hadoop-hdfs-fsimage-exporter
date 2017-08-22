@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.net.InetSocketAddress;
 
 import io.prometheus.client.exporter.MetricsServlet;
+import io.prometheus.client.hotspot.MemoryPoolsExports;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -22,6 +23,7 @@ public class WebServer {
         }
 
         new HfsaFsImageCollector(config).register();
+        new MemoryPoolsExports().register();
 
         final BuildInfoExporter buildInfo = new BuildInfoExporter("fsimage_exporter_",
                 "fsimage_exporter").register();

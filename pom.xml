@@ -95,6 +95,11 @@
             <artifactId>simpleclient_servlet</artifactId>
             <version>0.0.26</version>
         </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_hotspot</artifactId>
+            <version>0.0.26</version>
+        </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>junit</groupId>
