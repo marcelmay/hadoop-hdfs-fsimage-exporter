@@ -24,6 +24,9 @@ public class FsImageWatcher implements Runnable {
     private static final Summary METRIC_LOAD_DURATION = Summary.build()
             .name(METRIC_PREFIX + "load_duration_seconds")
             .help("Time for loading/parsing FSImage").register();
+    private static final Summary METRIC_VISIT_DURATION = Summary.build()
+            .name(METRIC_PREFIX + "compute_stats_duration_seconds")
+            .help("Time for computing stats for a loaded FSImage").register();
     private static final Gauge METRIC_LOAD_SIZE = Gauge.build()
             .name(METRIC_PREFIX + "load_file_size_bytes")
             .help("Size of raw FSImage").register();
@@ -33,8 +36,8 @@ public class FsImageWatcher implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(FsImageWatcher.class);
     private final File fsImageDir;
     private final boolean skipPreviouslyParsed;
-    private volatile FSImageLoader loader;
     private File lastFsImageFileLoaded;
+    private volatile FsImageReporter.Report report;
     private final Object lock = new Object();
 
 
@@ -55,12 +58,7 @@ public class FsImageWatcher implements Runnable {
     /**
      * Sorts descending by file name.
      */
-    static final Comparator<File> FSIMAGE_FILENAME_COMPARATOR = new Comparator<File>() {
-        @Override
-        public int compare(File o1, File o2) {
-            return o2.getName().compareTo(o1.getName());
-        }
-    };
+    static final Comparator<File> FSIMAGE_FILENAME_COMPARATOR = (o1, o2) -> o2.getName().compareTo(o1.getName());
 
     public FsImageWatcher(File fsImageDir, boolean skipPreviouslyParsed) {
         this.fsImageDir = fsImageDir;
@@ -72,45 +70,50 @@ public class FsImageWatcher implements Runnable {
 
     @Override
     public void run() {
-        try {
-            load();
-        } catch (IOException e) {
-            LOGGER.error("Can not preload FSImage", e);
-        }
-    }
-
-    void load() throws IOException {
         synchronized (lock) {
-            File fsImageFile = findLatestFSImageFile(fsImageDir);
-            if (skipPreviouslyParsed && fsImageFile.equals(lastFsImageFileLoaded)) {
-                METRIC_SCRAPE_SKIPS.inc();
-                LOGGER.debug("Skipping previously parsed {}", fsImageFile.getAbsoluteFile());
-                return;
-            }
-            METRIC_LOAD_SIZE.set(fsImageFile.length());
-            try (RandomAccessFile raFile = new RandomAccessFile(fsImageFile, "r")) {
-                long time = System.currentTimeMillis();
-                try (Summary.Timer timer = METRIC_LOAD_DURATION.startTimer()) {
-                    loader = FSImageLoader.load(raFile);
+            try {
+                File fsImageFile = findLatestFSImageFile(fsImageDir);
+                if (skipPreviouslyParsed && fsImageFile.equals(lastFsImageFileLoaded)) {
+                    METRIC_SCRAPE_SKIPS.inc();
+                    LOGGER.debug("Skipping previously parsed {}", fsImageFile.getAbsoluteFile());
+                    return;
                 }
-                LOGGER.info("Loaded {} in {}ms", fsImageDir.getAbsoluteFile(), System.currentTimeMillis() - time);
+
+                // Load new fsimage ...
+                METRIC_LOAD_SIZE.set(fsImageFile.length());
+                FSImageLoader loader;
+                try (RandomAccessFile raFile = new RandomAccessFile(fsImageFile, "r")) {
+                    long time = System.currentTimeMillis();
+                    try (Summary.Timer timer = METRIC_LOAD_DURATION.startTimer()) {
+                        loader = FSImageLoader.load(raFile);
+                    }
+                    LOGGER.info("Loaded {} in {}ms", fsImageFile.getAbsoluteFile(), System.currentTimeMillis() - time);
+                }
+                lastFsImageFileLoaded = fsImageFile;
+
+                // ... compute stats
+                try (Summary.Timer timer = METRIC_VISIT_DURATION.startTimer()) {
+                    report = FsImageReporter.computeStatsReport(loader);
+                }
+            } catch (IOException e) {
+                LOGGER.error("Can not preload FSImage", e);
+                // TODO : Error handling
             }
-            lastFsImageFileLoaded = fsImageFile;
         }
     }
 
-    public FSImageLoader getFSImageLoader() {
-        FSImageLoader currentLoader = loader;
-        if (currentLoader == null) {
+    public FsImageReporter.Report getFsImageReport() {
+        FsImageReporter.Report currentReport = report;
+        if (currentReport == null) {
             synchronized (lock) {
-                currentLoader = loader;
-                if (currentLoader == null) {
+                currentReport = report;
+                if (currentReport == null) {
                     run();
-                    currentLoader = loader;
+                    currentReport = report;
                 }
             }
         }
-        return currentLoader;
+        return currentReport;
     }
 
     static File findLatestFSImageFile(File fsImageDir) {

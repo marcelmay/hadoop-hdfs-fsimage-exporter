@@ -1,23 +1,20 @@
 package de.m3y.prometheus.exporter.fsimage;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import de.m3y.hadoop.hdfs.hfsa.core.FSImageLoader;
-import de.m3y.hadoop.hdfs.hfsa.core.FsVisitor;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
-import org.apache.hadoop.fs.permission.PermissionStatus;
-import org.apache.hadoop.hdfs.server.namenode.FsImageProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,27 +42,6 @@ public class HfsaFsImageCollector extends Collector {
     final MemoryMXBean memoryMXBean;
     final FsImageWatcher fsImageWatcher;
 
-    static class UserStats {
-        final String userName;
-        long sumBlocks;
-        long sumDirectories;
-        long sumSymLinks;
-
-        UserStats(String userName) {
-            this.userName = userName;
-        }
-    }
-
-    static class GroupStats {
-        final String groupName;
-        long sumBlocks;
-        long sumDirectories;
-        long sumSymLinks;
-
-        GroupStats(String groupName) {
-            this.groupName = groupName;
-        }
-    }
 
     private static final long SIZE_1_MIB = 1024L * 1024L;
     private static final long SIZE_1_GIB = 1024L * SIZE_1_MIB;
@@ -95,11 +71,10 @@ public class HfsaFsImageCollector extends Collector {
     static final Gauge METRIC_SUM_BLOCKS = Gauge.build()
             .name(METRIC_PREFIX + METRIC_POSTFIX_BLOCKS)
             .help("Number of blocks.").register();
-    static final Histogram METRIC_FILE_SIZE_BUCKETS = Histogram.build()
+    static final Histogram.Builder METRIC_FILE_SIZE_BUCKETS_BUILDER = Histogram.build()
             .name(METRIC_PREFIX + FSIZE)
             .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
-            .help("Overall file size distribution")
-            .register();
+            .help("Overall file size distribution");
 
 
     // By user
@@ -116,12 +91,11 @@ public class HfsaFsImageCollector extends Collector {
             .name(METRIC_PREFIX_USER + METRIC_POSTFIX_BLOCKS)
             .labelNames(LABEL_USER_NAME)
             .help("Number of blocks.").register();
-    static final Histogram METRIC_USER_FILE_SIZE_BUCKETS = Histogram.build()
+    static final Histogram.Builder METRIC_USER_FILE_SIZE_BUCKETS_BUILDER = Histogram.build()
             .name(METRIC_PREFIX_USER + FSIZE)
             .labelNames(LABEL_USER_NAME)
             .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
-            .help("Per user file size distribution")
-            .register();
+            .help("Per user file size distribution");
 
     // By group
     static final String METRIC_PREFIX_GROUP = METRIC_PREFIX + "group_";
@@ -137,30 +111,14 @@ public class HfsaFsImageCollector extends Collector {
             .name(METRIC_PREFIX_GROUP + METRIC_POSTFIX_BLOCKS)
             .labelNames("group_name")
             .help("Number of blocks.").register();
-    static final Histogram METRIC_GROUP_FILE_SIZE_BUCKETS = Histogram.build()
+    static final Histogram.Builder METRIC_GROUP_FILE_SIZE_BUCKETS_BUILDER = Histogram.build()
             .name(METRIC_PREFIX_GROUP + FSIZE)
             .labelNames("group_name")
             .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
-            .help("Per group file size distribution.")
-            .register();
+            .help("Per group file size distribution.");
 
-    static class OverallStats {
-        long sumDirectories;
-        long sumBlocks;
-        long sumSymLinks;
-    }
 
-    static class Report {
-        final Map<String, GroupStats> groupStats;
-        final Map<String, UserStats> userStats;
-        final OverallStats overallStats;
-
-        Report() {
-            groupStats = Collections.synchronizedMap(new HashMap<>());
-            userStats = Collections.synchronizedMap(new HashMap<>());
-            overallStats = new OverallStats();
-        }
-    }
+    private FsImageReporter.Report currentReport;
 
     HfsaFsImageCollector(Config config) {
         this.config = config;
@@ -180,27 +138,28 @@ public class HfsaFsImageCollector extends Collector {
         scheduler.scheduleWithFixedDelay(fsImageWatcher, 60, 60, TimeUnit.SECONDS);
     }
 
-    private void scrape() throws IOException {
-        METRIC_GROUP_FILE_SIZE_BUCKETS.clear();
-        METRIC_USER_FILE_SIZE_BUCKETS.clear();
-        METRIC_FILE_SIZE_BUCKETS.clear();
-
-        final FSImageLoader loader = fsImageWatcher.getFSImageLoader();
-
-        LOGGER.info("Visiting ...");
-        long start = System.currentTimeMillis();
-        Report report = computeStats(loader);
-        LOGGER.info("Visiting finished [{}ms].", System.currentTimeMillis() - start);
+    private void scrape() {
+        // Switch report
+        synchronized (this) {
+            final FsImageReporter.Report latestReport = fsImageWatcher.getFsImageReport();
+            if (latestReport != currentReport) {
+                if (currentReport != null) {
+                    currentReport.unregister();
+                }
+                currentReport = latestReport;
+                currentReport.register();
+            }
+        }
 
         // Overall stats
-        OverallStats overallStats = report.overallStats;
+        FsImageReporter.OverallStats overallStats = currentReport.overallStats;
         METRIC_SUM_DIRS.set(overallStats.sumDirectories);
         METRIC_SUM_LINKS.set(overallStats.sumSymLinks);
         METRIC_SUM_BLOCKS.set(overallStats.sumBlocks);
         METRIC_SUM_BLOCKS.inc();
 
         // User stats
-        for (UserStats userStat : report.userStats.values()) {
+        for (FsImageReporter.UserStats userStat : currentReport.userStats.values()) {
             String[] labelValues = new String[]{userStat.userName};
             METRIC_USER_SUM_DIRS.labels(labelValues).set(userStat.sumDirectories);
             METRIC_USER_SUM_LINKS.labels(labelValues).set(userStat.sumSymLinks);
@@ -208,96 +167,12 @@ public class HfsaFsImageCollector extends Collector {
         }
 
         // Group stats
-        for (GroupStats groupStat : report.groupStats.values()) {
+        for (FsImageReporter.GroupStats groupStat : currentReport.groupStats.values()) {
             String[] labelValues = new String[]{groupStat.groupName};
             METRIC_GROUP_SUM_DIRS.labels(labelValues).set(groupStat.sumDirectories);
             METRIC_GROUP_SUM_LINKS.labels(labelValues).set(groupStat.sumSymLinks);
             METRIC_GROUP_SUM_BLOCKS.labels(labelValues).set(groupStat.sumBlocks);
         }
-    }
-
-    private Report computeStats(FSImageLoader loader) throws IOException {
-        Report report = new Report();
-        final OverallStats overallStats = report.overallStats;
-        loader.visitParallel(new FsVisitor() {
-            @Override
-            public void onFile(FsImageProto.INodeSection.INode inode, String path) {
-                FsImageProto.INodeSection.INodeFile f = inode.getFile();
-                PermissionStatus p = loader.getPermissionStatus(f.getPermission());
-
-                final long fileSize = FSImageLoader.getFileSize(f);
-                final long fileBlocks = f.getBlocksCount();
-                synchronized (overallStats) {
-                    overallStats.sumBlocks += fileBlocks;
-                    METRIC_FILE_SIZE_BUCKETS.observe(fileSize);
-                }
-
-                // Group stats
-                final String groupName = p.getGroupName();
-                final GroupStats groupStat = report.groupStats.computeIfAbsent(groupName, GroupStats::new);
-                synchronized (groupStat) {
-                    groupStat.sumBlocks += fileBlocks;
-                    METRIC_GROUP_FILE_SIZE_BUCKETS.labels(groupName).observe(fileSize);
-                }
-
-                // User stats
-                final String userName = p.getUserName();
-                UserStats user = report.userStats.computeIfAbsent(userName, UserStats::new);
-                synchronized (user) {
-                    METRIC_USER_FILE_SIZE_BUCKETS.labels(userName).observe(fileSize);
-                    user.sumBlocks += fileBlocks;
-                }
-            }
-
-            @Override
-            public void onDirectory(FsImageProto.INodeSection.INode inode, String path) {
-                FsImageProto.INodeSection.INodeDirectory d = inode.getDirectory();
-                PermissionStatus p = loader.getPermissionStatus(d.getPermission());
-
-                // Group stats
-                final String groupName = p.getGroupName();
-                final GroupStats groupStat = report.groupStats.computeIfAbsent(groupName, GroupStats::new);
-                synchronized (groupStat) {
-                    groupStat.sumDirectories++;
-                }
-
-                // User stats
-                final String userName = p.getUserName();
-                final UserStats user = report.userStats.computeIfAbsent(userName, UserStats::new);
-                synchronized (user) {
-                    user.sumDirectories++;
-                }
-
-                synchronized (overallStats) {
-                    overallStats.sumDirectories++;
-                }
-            }
-
-            @Override
-            public void onSymLink(FsImageProto.INodeSection.INode inode, String path) {
-                FsImageProto.INodeSection.INodeSymlink d = inode.getSymlink();
-                PermissionStatus p = loader.getPermissionStatus(d.getPermission());
-
-                // Group stats
-                final String groupName = p.getGroupName();
-                final GroupStats groupStat = report.groupStats.computeIfAbsent(groupName, GroupStats::new);
-                synchronized (groupStat) {
-                    groupStat.sumSymLinks++;
-                }
-
-                // User stats
-                final String userName = p.getUserName();
-                final UserStats user = report.userStats.computeIfAbsent(userName, UserStats::new);
-                synchronized (user) {
-                    user.sumSymLinks++;
-                }
-
-                synchronized (overallStats) {
-                    overallStats.sumSymLinks++;
-                }
-            }
-        });
-        return report;
     }
 
     public List<MetricFamilySamples> collect() {
