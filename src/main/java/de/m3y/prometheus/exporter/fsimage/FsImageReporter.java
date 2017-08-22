@@ -50,6 +50,7 @@ public class FsImageReporter {
         final Histogram userFleSizeDistribution = HfsaFsImageCollector.METRIC_USER_FILE_SIZE_BUCKETS_BUILDER.create();
         final OverallStats overallStats;
         final Histogram overalFleSizeDistribution = HfsaFsImageCollector.METRIC_FILE_SIZE_BUCKETS_BUILDER.create();
+        boolean error;
 
         Report() {
             groupStats = Collections.synchronizedMap(new HashMap<>());

@@ -95,9 +95,9 @@ public class FsImageWatcher implements Runnable {
                 try (Summary.Timer timer = METRIC_VISIT_DURATION.startTimer()) {
                     report = FsImageReporter.computeStatsReport(loader);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOGGER.error("Can not preload FSImage", e);
-                // TODO : Error handling
+                report.error = true;
             }
         }
     }

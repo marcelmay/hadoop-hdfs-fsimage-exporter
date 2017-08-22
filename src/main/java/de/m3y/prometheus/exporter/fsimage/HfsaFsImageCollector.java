@@ -138,25 +138,12 @@ public class HfsaFsImageCollector extends Collector {
         scheduler.scheduleWithFixedDelay(fsImageWatcher, 60, 60, TimeUnit.SECONDS);
     }
 
-    private void scrape() {
-        // Switch report
-        synchronized (this) {
-            final FsImageReporter.Report latestReport = fsImageWatcher.getFsImageReport();
-            if (latestReport != currentReport) {
-                if (currentReport != null) {
-                    currentReport.unregister();
-                }
-                currentReport = latestReport;
-                currentReport.register();
-            }
-        }
-
+    private void setMetricsFromReport() {
         // Overall stats
         FsImageReporter.OverallStats overallStats = currentReport.overallStats;
         METRIC_SUM_DIRS.set(overallStats.sumDirectories);
         METRIC_SUM_LINKS.set(overallStats.sumSymLinks);
         METRIC_SUM_BLOCKS.set(overallStats.sumBlocks);
-        METRIC_SUM_BLOCKS.inc();
 
         // User stats
         for (FsImageReporter.UserStats userStat : currentReport.userStats.values()) {
@@ -173,12 +160,29 @@ public class HfsaFsImageCollector extends Collector {
             METRIC_GROUP_SUM_LINKS.labels(labelValues).set(groupStat.sumSymLinks);
             METRIC_GROUP_SUM_BLOCKS.labels(labelValues).set(groupStat.sumBlocks);
         }
+
+        // Signal error, if background thread ran into error
+        if(currentReport.error) {
+            METRIC_SCRAPE_ERROR.inc();
+        }
     }
 
     public List<MetricFamilySamples> collect() {
         try (Gauge.Timer timer = METRIC_SCRAPE_DURATION.startTimer()) {
             METRIC_SCRAPE_REQUESTS.inc();
-            scrape();
+
+            // Switch report
+            synchronized (this) {
+                final FsImageReporter.Report latestReport = fsImageWatcher.getFsImageReport();
+                if (latestReport != currentReport) {
+                    if (currentReport != null) {
+                        currentReport.unregister();
+                    }
+                    currentReport = latestReport;
+                    currentReport.register();
+                }
+            }
+            setMetricsFromReport();
 
             final MemoryUsage heapMemoryUsage = memoryMXBean.getHeapMemoryUsage();
             METRIC_EXPORTER_HEAP.labels("max").set(heapMemoryUsage.getMax());
