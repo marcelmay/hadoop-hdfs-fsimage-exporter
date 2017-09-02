@@ -4,7 +4,7 @@ Prometheus Hadoop HDFS FSImage Exporter
 [![Maven Central](https://img.shields.io/maven-central/v/de.m3y.prometheus.exporter.fsimage/fsimage-exporter.svg?style=flat-square)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.m3y.prometheus.exporter.fsimage%22%20AND%20a%3A%22fsimage-exporter%22)
 
 Exports Hadoop HDFS statistics to [Prometheus monitoring](https://prometheus.io/) including
-* total / per user / per group
+* total / per user / per group / per configured directory path
     * number of directories
     * number of files
     * file size distribution
@@ -12,13 +12,17 @@ Exports Hadoop HDFS statistics to [Prometheus monitoring](https://prometheus.io/
     
 The exporter parses the FSImage using the [Hadoop FSImage Analysis library](https://github.com/marcelmay/hfsa).
 This approach has the advantage of
-* being fast (2GB FSImage ~ 100s)
-* adding no heavy additional load on HDFS NameNode (no NameNode queries, you can run it on 2nd NameNode)
+* being fast (2GB FSImage ~ 200s)
+* adding no heavy additional load to HDFS NameNode (no NameNode queries, you can run it on 2nd NameNode)
 
 The disadvantage is
 * no real time update, only about every 6h when NameNode writes FSImage. But should be sufficient for most cases (long term trend, detecting HDFS small file abuses, user and group stats)
+* parsing takes 2x-3x FSImage size in heap space
 
 ![FSImage Exporter overview](fsimage_exporter.png)
+
+The exporter parses fsimages in background thread which checks every 60s for fsimage changes.
+This avoids blocking and long running Prometheus scrapes.
 
 ## Requirements
 For building:
@@ -41,8 +45,16 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
 * Configure the exporter     
   Create a yml file (see [example.yml](example.yml)):
   ```
+  # Path where HDFS NameNode stores the fsimage files
+  # See https://hadoop.apache.org/docs/r2.7.3/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml#dfs.namenode.name.dir
   fsImagePath : '<path to name node fsimage_0xxx file location>'
+  # Skip previously parsed fsimage files, as nothing changed since last invocation
   skipPreviouslyParsed : true
+  # Optional: Compute path stats additionally for following paths:
+  paths:
+    - '/tmp'
+    - '/datalake'
+    - '/user/foo.*bar'
   ```
 * Run the exporter
   ```
@@ -55,7 +67,7 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
          -jar target/fsimage-exporter-1.0-SNAPSHOT.jar \
          0.0.0.0 9092 example.yml
   ```
-  Note: Make sure to size the heap correctly. As an heuristic, you can use 1.5 * fsimage size.
+  Note: Make sure to size the heap correctly. As an heuristic, you can use 3 * fsimage size.
   
 * Test the exporter  
   Open http://\<hostname>:\<port>/metrics or http://\<hostname>:\<port>/ (for configuration overview)
@@ -76,7 +88,7 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
 
 ## Roadmap
 
-Release 1.1+ (see issues):
+Release 1.1+ (see [issues](issues)):
 * Logging conf
 * Docker image
 * Example Grafana dashboard?

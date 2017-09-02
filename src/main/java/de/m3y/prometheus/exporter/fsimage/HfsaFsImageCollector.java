@@ -53,16 +53,20 @@ public class HfsaFsImageCollector extends Collector {
     private static final String FSIZE = "fsize";
     private static final String LABEL_USER_NAME = "user_name";
 
+    private static final String HELP_NUMBER_OF_SYM_LINKS = "Number of sym links.";
+    private static final String HELP_NUMBER_OF_DIRECTORIES = "Number of directories.";
+    private static final String HELP_NUMBER_OF_BLOCKS = "Number of blocks.";
+
     // Overall
     static final Gauge METRIC_SUM_DIRS = Gauge.build()
             .name(METRIC_PREFIX + METRIC_POSTFIX_DIRS)
-            .help("Number of directories.").register();
+            .help(HELP_NUMBER_OF_DIRECTORIES).register();
     static final Gauge METRIC_SUM_LINKS = Gauge.build()
             .name(METRIC_PREFIX + METRIC_POSTFIX_LINKS)
-            .help("Number of sym links.").register();
+            .help(HELP_NUMBER_OF_SYM_LINKS).register();
     static final Gauge METRIC_SUM_BLOCKS = Gauge.build()
             .name(METRIC_PREFIX + METRIC_POSTFIX_BLOCKS)
-            .help("Number of blocks.").register();
+            .help(HELP_NUMBER_OF_BLOCKS).register();
     static final Histogram.Builder METRIC_FILE_SIZE_BUCKETS_BUILDER = Histogram.build()
             .name(METRIC_PREFIX + FSIZE)
             .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
@@ -74,15 +78,15 @@ public class HfsaFsImageCollector extends Collector {
     static final Gauge METRIC_USER_SUM_DIRS = Gauge.build()
             .name(METRIC_PREFIX_USER + METRIC_POSTFIX_DIRS)
             .labelNames(LABEL_USER_NAME)
-            .help("Number of directories.").register();
+            .help(HELP_NUMBER_OF_DIRECTORIES).register();
     static final Gauge METRIC_USER_SUM_LINKS = Gauge.build()
             .name(METRIC_PREFIX_USER + METRIC_POSTFIX_LINKS)
             .labelNames(LABEL_USER_NAME)
-            .help("Number of sym links.").register();
+            .help(HELP_NUMBER_OF_SYM_LINKS).register();
     static final Gauge METRIC_USER_SUM_BLOCKS = Gauge.build()
             .name(METRIC_PREFIX_USER + METRIC_POSTFIX_BLOCKS)
             .labelNames(LABEL_USER_NAME)
-            .help("Number of blocks.").register();
+            .help(HELP_NUMBER_OF_BLOCKS).register();
     static final Histogram.Builder METRIC_USER_FILE_SIZE_BUCKETS_BUILDER = Histogram.build()
             .name(METRIC_PREFIX_USER + FSIZE)
             .labelNames(LABEL_USER_NAME)
@@ -91,24 +95,45 @@ public class HfsaFsImageCollector extends Collector {
 
     // By group
     static final String METRIC_PREFIX_GROUP = METRIC_PREFIX + "group_";
+    public static final String LABEL_GROUP_NAME = "group_name";
     static final Gauge METRIC_GROUP_SUM_DIRS = Gauge.build()
             .name(METRIC_PREFIX_GROUP + METRIC_POSTFIX_DIRS)
-            .labelNames("group_name")
-            .help("Number of directories.").register();
+            .labelNames(LABEL_GROUP_NAME)
+            .help(HELP_NUMBER_OF_DIRECTORIES).register();
     static final Gauge METRIC_GROUP_SUM_LINKS = Gauge.build()
             .name(METRIC_PREFIX_GROUP + METRIC_POSTFIX_LINKS)
-            .labelNames("group_name")
-            .help("Number of sym links.").register();
+            .labelNames(LABEL_GROUP_NAME)
+            .help(HELP_NUMBER_OF_SYM_LINKS).register();
     static final Gauge METRIC_GROUP_SUM_BLOCKS = Gauge.build()
             .name(METRIC_PREFIX_GROUP + METRIC_POSTFIX_BLOCKS)
-            .labelNames("group_name")
-            .help("Number of blocks.").register();
+            .labelNames(LABEL_GROUP_NAME)
+            .help(HELP_NUMBER_OF_BLOCKS).register();
     static final Histogram.Builder METRIC_GROUP_FILE_SIZE_BUCKETS_BUILDER = Histogram.build()
             .name(METRIC_PREFIX_GROUP + FSIZE)
-            .labelNames("group_name")
+            .labelNames(LABEL_GROUP_NAME)
             .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
             .help("Per group file size distribution.");
 
+    // By path
+    static final String METRIC_PREFIX_PATH = METRIC_PREFIX + "path_";
+    public static final String LABEL_PATH = "path";
+    static final Gauge METRIC_PATH_SUM_DIRS = Gauge.build()
+            .name(METRIC_PREFIX_PATH + METRIC_POSTFIX_DIRS)
+            .labelNames(LABEL_PATH)
+            .help(HELP_NUMBER_OF_DIRECTORIES).register();
+    static final Gauge METRIC_PATH_SUM_LINKS = Gauge.build()
+            .name(METRIC_PREFIX_PATH + METRIC_POSTFIX_LINKS)
+            .labelNames(LABEL_PATH)
+            .help(HELP_NUMBER_OF_SYM_LINKS).register();
+    static final Gauge METRIC_PATH_SUM_BLOCKS = Gauge.build()
+            .name(METRIC_PREFIX_PATH + METRIC_POSTFIX_BLOCKS)
+            .labelNames(LABEL_PATH)
+            .help(HELP_NUMBER_OF_BLOCKS).register();
+    static final Histogram.Builder METRIC_PATH_FILE_SIZE_BUCKETS_BUILDER = Histogram.build()
+            .name(METRIC_PREFIX_PATH + FSIZE)
+            .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
+            .labelNames(LABEL_PATH)
+            .help("Path specific file size distribution");
 
     private FsImageReporter.Report currentReport;
 
@@ -124,7 +149,7 @@ public class HfsaFsImageCollector extends Collector {
         if (!fsImageDir.exists()) {
             throw new IllegalArgumentException(fsImageDir.getAbsolutePath() + " does not exist");
         }
-        fsImageWatcher = new FsImageWatcher(fsImageDir, config.isSkipPreviouslyParsed());
+        fsImageWatcher = new FsImageWatcher(fsImageDir, config);
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleWithFixedDelay(fsImageWatcher, 60, 60, TimeUnit.SECONDS);
     }
@@ -152,6 +177,14 @@ public class HfsaFsImageCollector extends Collector {
             METRIC_GROUP_SUM_BLOCKS.labels(labelValues).set(groupStat.sumBlocks);
         }
 
+        // Path stats
+        if(currentReport.hasPathStats()) {
+            for (FsImageReporter.PathStats pathStat : currentReport.pathStats.values()) {
+                METRIC_PATH_SUM_DIRS.labels(pathStat.path).set(pathStat.sumDirectories);
+                METRIC_PATH_SUM_LINKS.labels(pathStat.path).set(pathStat.sumSymLinks);
+                METRIC_PATH_SUM_BLOCKS.labels(pathStat.path).set(pathStat.sumBlocks);
+            }
+        }
         // Signal error, if background thread ran into error
         if (currentReport.error) {
             METRIC_SCRAPE_ERROR.inc();

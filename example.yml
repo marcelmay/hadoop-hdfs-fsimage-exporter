@@ -3,3 +3,9 @@
 fsImagePath : 'src/test/resources'
 # Skip previously parsed fsimage files, as nothing changed since last invocation
 skipPreviouslyParsed : true
+# Compute per path stats
+# Supports regex matching for direct child directories
+paths:
+  - '/tmp'
+  - '/datalake/a.*'
+  - '/user/m.*'

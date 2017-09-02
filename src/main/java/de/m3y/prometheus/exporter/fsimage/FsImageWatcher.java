@@ -2,7 +2,6 @@ package de.m3y.prometheus.exporter.fsimage;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -35,7 +34,7 @@ public class FsImageWatcher implements Runnable {
             .help("Counts the fsimage scrape skips (no fsimage change).").register();
     private static final Logger LOGGER = LoggerFactory.getLogger(FsImageWatcher.class);
     private final File fsImageDir;
-    private final boolean skipPreviouslyParsed;
+    private final Config config;
     private File lastFsImageFileLoaded;
     private volatile FsImageReporter.Report report;
     private final Object lock = new Object();
@@ -60,12 +59,12 @@ public class FsImageWatcher implements Runnable {
      */
     static final Comparator<File> FSIMAGE_FILENAME_COMPARATOR = (o1, o2) -> o2.getName().compareTo(o1.getName());
 
-    public FsImageWatcher(File fsImageDir, boolean skipPreviouslyParsed) {
+    public FsImageWatcher(File fsImageDir, Config config) {
         this.fsImageDir = fsImageDir;
         if (!fsImageDir.exists()) {
             throw new IllegalArgumentException(fsImageDir.getAbsolutePath() + " does not exist");
         }
-        this.skipPreviouslyParsed = skipPreviouslyParsed;
+        this.config = config;
     }
 
     @Override
@@ -73,7 +72,7 @@ public class FsImageWatcher implements Runnable {
         synchronized (lock) {
             try {
                 File fsImageFile = findLatestFSImageFile(fsImageDir);
-                if (skipPreviouslyParsed && fsImageFile.equals(lastFsImageFileLoaded)) {
+                if (config.isSkipPreviouslyParsed() && fsImageFile.equals(lastFsImageFileLoaded)) {
                     METRIC_SCRAPE_SKIPS.inc();
                     LOGGER.debug("Skipping previously parsed {}", fsImageFile.getAbsoluteFile());
                     return;
@@ -87,13 +86,17 @@ public class FsImageWatcher implements Runnable {
                     try (Summary.Timer timer = METRIC_LOAD_DURATION.startTimer()) {
                         loader = FSImageLoader.load(raFile);
                     }
-                    LOGGER.info("Loaded {} in {}ms", fsImageFile.getAbsoluteFile(), System.currentTimeMillis() - time);
+                    if(LOGGER.isInfoEnabled()) {
+                        LOGGER.info("Loaded {} with {}MiB in {}ms", fsImageFile.getAbsoluteFile(),
+                                String.format("%.1f", fsImageFile.length() / 1024.0 / 1024.0),
+                                System.currentTimeMillis() - time);
+                    }
                 }
                 lastFsImageFileLoaded = fsImageFile;
 
                 // ... compute stats
                 try (Summary.Timer timer = METRIC_VISIT_DURATION.startTimer()) {
-                    report = FsImageReporter.computeStatsReport(loader);
+                    report = FsImageReporter.computeStatsReport(loader, config);
                 }
             } catch (Exception e) {
                 LOGGER.error("Can not preload FSImage", e);
