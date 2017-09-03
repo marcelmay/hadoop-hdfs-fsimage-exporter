@@ -116,7 +116,6 @@ public class WebServerIT {
         assertTrue(body.contains("fsimage_group_dirs{group_name=\"supergroup\",} 14.0"));
         assertTrue(body.contains("fsimage_group_dirs{group_name=\"nobody\",} 0.0"));
 
-
         // User
         assertTrue(body.contains("fsimage_user_blocks{user_name=\"foo\",} 2.0"));
         assertTrue(body.contains("fsimage_user_blocks{user_name=\"root\",} 1.0"));
@@ -158,50 +157,17 @@ public class WebServerIT {
         assertTrue(body.contains("fsimage_user_fsize_count{user_name=\"mm\",} 14.0"));
         assertTrue(body.contains("fsimage_user_fsize_sum{user_name=\"mm\",} 1.8863616E8"));
 
-
         // Paths
         assertTrue(body.contains("fsimage_path_blocks{path=\"/datalake/asset2\",} 2.0"));
         assertTrue(body.contains("fsimage_path_blocks{path=\"/datalake/asset3\",} 3.0"));
         assertTrue(body.contains("fsimage_path_blocks{path=\"/user/mm\",} 0.0"));
         assertTrue(body.contains("fsimage_path_blocks{path=\"/datalake/asset1\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset2\",le=\"0.0\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset2\",le=\"1048576.0\",} 1.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset2\",le=\"3.3554432E7\",} 2.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset2\",le=\"6.7108864E7\",} 2.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset2\",le=\"1.34217728E8\",} 2.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset2\",le=\"1.073741824E9\",} 2.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset2\",le=\"1.073741824E10\",} 2.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset2\",le=\"+Inf\",} 2.0"));
         assertTrue(body.contains("fsimage_path_fsize_count{path=\"/datalake/asset2\",} 2.0"));
         assertTrue(body.contains("fsimage_path_fsize_sum{path=\"/datalake/asset2\",} 2098176.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset3\",le=\"0.0\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset3\",le=\"1048576.0\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset3\",le=\"3.3554432E7\",} 3.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset3\",le=\"6.7108864E7\",} 3.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset3\",le=\"1.34217728E8\",} 3.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset3\",le=\"1.073741824E9\",} 3.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset3\",le=\"1.073741824E10\",} 3.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset3\",le=\"+Inf\",} 3.0"));
         assertTrue(body.contains("fsimage_path_fsize_count{path=\"/datalake/asset3\",} 3.0"));
         assertTrue(body.contains("fsimage_path_fsize_sum{path=\"/datalake/asset3\",} 6291456.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/user/mm\",le=\"0.0\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/user/mm\",le=\"1048576.0\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/user/mm\",le=\"3.3554432E7\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/user/mm\",le=\"6.7108864E7\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/user/mm\",le=\"1.34217728E8\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/user/mm\",le=\"1.073741824E9\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/user/mm\",le=\"1.073741824E10\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/user/mm\",le=\"+Inf\",} 0.0"));
         assertTrue(body.contains("fsimage_path_fsize_count{path=\"/user/mm\",} 0.0"));
         assertTrue(body.contains("fsimage_path_fsize_sum{path=\"/user/mm\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset1\",le=\"0.0\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset1\",le=\"1048576.0\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset1\",le=\"3.3554432E7\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset1\",le=\"6.7108864E7\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset1\",le=\"1.34217728E8\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset1\",le=\"1.073741824E9\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset1\",le=\"1.073741824E10\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_fsize_bucket{path=\"/datalake/asset1\",le=\"+Inf\",} 0.0"));
         assertTrue(body.contains("fsimage_path_fsize_count{path=\"/datalake/asset1\",} 0.0"));
         assertTrue(body.contains("fsimage_path_fsize_sum{path=\"/datalake/asset1\",} 0.0"));
         assertTrue(body.contains("fsimage_path_dirs{path=\"/datalake/asset2\",} 1.0"));

@@ -7,7 +7,7 @@ Exports Hadoop HDFS statistics to [Prometheus monitoring](https://prometheus.io/
 * total / per user / per group / per configured directory path
     * number of directories
     * number of files
-    * file size distribution
+    * file size and optionally size distribution
     * number of blocks
     
 The exporter parses the FSImage using the [Hadoop FSImage Analysis library](https://github.com/marcelmay/hfsa).
@@ -42,6 +42,7 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
 ## Installation and configuration
 
 * Install the JAR on a system where the FSImage is locally available (eg name node server).
+
 * Configure the exporter     
   Create a yml file (see [example.yml](example.yml)):
   ```
@@ -55,7 +56,16 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
     - '/tmp'
     - '/datalake'
     - '/user/foo.*bar'
+  # Skip file size distribution for path based stats - will report as Summary instead of Histogram
+  skipFileDistributionForPathStats : true
+  # Skip file size distribution for group based stats - will report as Summary instead of Histogram
+  skipFileDistributionForGroupStats : false
+  # Skip file size distribution for user based stats - will report as Summary instead of Histogram
+  skipFileDistributionForUserStats : false
   ```
+  Note that the flag toggling file size distribution switches between [Summary](https://github.com/prometheus/client_java#summary) (few time series)
+  and [Histogram](https://github.com/prometheus/client_java#histogram) (many time series)
+ 
 * Run the exporter
   ```
     > java -jar target/fsimage-exporter.jar

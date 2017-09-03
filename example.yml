@@ -9,3 +9,9 @@ paths:
   - '/tmp'
   - '/datalake/a.*'
   - '/user/m.*'
+# Skip file size distribution for path based stats
+skipFileDistributionForPathStats : true
+# Skip file size distribution for group based stats
+skipFileDistributionForGroupStats : false
+# Skip file size distribution for user based stats
+skipFileDistributionForUserStats : false

@@ -16,11 +16,23 @@ public class Config {
     private boolean skipPreviouslyParsed = true;
     /**
      * A list of paths to report statistics for.
-     *
+     * <p>
      * Paths can contain a regexp postfix, like "/users/ab.*", for matching direct child directories
      */
     private Set<String> paths;
 
+    /**
+     * Skip file size distribution for group stats.
+     */
+    boolean skipFileDistributionForGroupStats = false;
+    /**
+     * Skip file size distribution for user stats.
+     */
+    boolean skipFileDistributionForUserStats = false;
+    /**
+     * Skip file size distribution for path based stats.
+     */
+    boolean skipFileDistributionForPathStats = false;
 
     public String getFsImagePath() {
         return fsImagePath;
@@ -47,6 +59,30 @@ public class Config {
     }
 
     public boolean hasPaths() {
-        return null != paths && ! paths.isEmpty();
+        return null != paths && !paths.isEmpty();
+    }
+
+    public boolean isSkipFileDistributionForPathStats() {
+        return skipFileDistributionForPathStats;
+    }
+
+    public void setSkipFileDistributionForPathStats(boolean skipFileDistributionForPathStats) {
+        this.skipFileDistributionForPathStats = skipFileDistributionForPathStats;
+    }
+
+    public boolean isSkipFileDistributionForGroupStats() {
+        return skipFileDistributionForGroupStats;
+    }
+
+    public void setSkipFileDistributionForGroupStats(boolean skipFileDistributionForGroupStats) {
+        this.skipFileDistributionForGroupStats = skipFileDistributionForGroupStats;
+    }
+
+    public boolean isSkipFileDistributionForUserStats() {
+        return skipFileDistributionForUserStats;
+    }
+
+    public void setSkipFileDistributionForUserStats(boolean skipFileDistributionForUserStats) {
+        this.skipFileDistributionForUserStats = skipFileDistributionForUserStats;
     }
 }

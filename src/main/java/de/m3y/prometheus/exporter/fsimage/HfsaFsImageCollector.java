@@ -37,7 +37,7 @@ public class HfsaFsImageCollector extends Collector {
 
     private static final long SIZE_1_MIB = 1024L * 1024L;
     private static final long SIZE_1_GIB = 1024L * SIZE_1_MIB;
-    private static final long[] BUCKET_UPPER_BOUNDARIES = new long[]{
+    static final long[] BUCKET_UPPER_BOUNDARIES = new long[]{
             0L /* 0 B */,
             SIZE_1_MIB /* 1 MiB */,
             32L * SIZE_1_MIB /* 32 MiB */,
@@ -50,8 +50,8 @@ public class HfsaFsImageCollector extends Collector {
     private static final String METRIC_POSTFIX_DIRS = "dirs";
     private static final String METRIC_POSTFIX_BLOCKS = "blocks";
     private static final String METRIC_POSTFIX_LINKS = "links";
-    private static final String FSIZE = "fsize";
-    private static final String LABEL_USER_NAME = "user_name";
+    static final String FSIZE = "fsize";
+    static final String LABEL_USER_NAME = "user_name";
 
     private static final String HELP_NUMBER_OF_SYM_LINKS = "Number of sym links.";
     private static final String HELP_NUMBER_OF_DIRECTORIES = "Number of directories.";
@@ -87,11 +87,6 @@ public class HfsaFsImageCollector extends Collector {
             .name(METRIC_PREFIX_USER + METRIC_POSTFIX_BLOCKS)
             .labelNames(LABEL_USER_NAME)
             .help(HELP_NUMBER_OF_BLOCKS).register();
-    static final Histogram.Builder METRIC_USER_FILE_SIZE_BUCKETS_BUILDER = Histogram.build()
-            .name(METRIC_PREFIX_USER + FSIZE)
-            .labelNames(LABEL_USER_NAME)
-            .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
-            .help("Per user file size distribution");
 
     // By group
     static final String METRIC_PREFIX_GROUP = METRIC_PREFIX + "group_";
@@ -108,11 +103,6 @@ public class HfsaFsImageCollector extends Collector {
             .name(METRIC_PREFIX_GROUP + METRIC_POSTFIX_BLOCKS)
             .labelNames(LABEL_GROUP_NAME)
             .help(HELP_NUMBER_OF_BLOCKS).register();
-    static final Histogram.Builder METRIC_GROUP_FILE_SIZE_BUCKETS_BUILDER = Histogram.build()
-            .name(METRIC_PREFIX_GROUP + FSIZE)
-            .labelNames(LABEL_GROUP_NAME)
-            .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
-            .help("Per group file size distribution.");
 
     // By path
     static final String METRIC_PREFIX_PATH = METRIC_PREFIX + "path_";
@@ -129,11 +119,6 @@ public class HfsaFsImageCollector extends Collector {
             .name(METRIC_PREFIX_PATH + METRIC_POSTFIX_BLOCKS)
             .labelNames(LABEL_PATH)
             .help(HELP_NUMBER_OF_BLOCKS).register();
-    static final Histogram.Builder METRIC_PATH_FILE_SIZE_BUCKETS_BUILDER = Histogram.build()
-            .name(METRIC_PREFIX_PATH + FSIZE)
-            .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
-            .labelNames(LABEL_PATH)
-            .help("Path specific file size distribution");
 
     private FsImageReporter.Report currentReport;
 
@@ -178,7 +163,7 @@ public class HfsaFsImageCollector extends Collector {
         }
 
         // Path stats
-        if(currentReport.hasPathStats()) {
+        if (currentReport.hasPathStats()) {
             for (FsImageReporter.PathStats pathStat : currentReport.pathStats.values()) {
                 METRIC_PATH_SUM_DIRS.labels(pathStat.path).set(pathStat.sumDirectories);
                 METRIC_PATH_SUM_LINKS.labels(pathStat.path).set(pathStat.sumSymLinks);
