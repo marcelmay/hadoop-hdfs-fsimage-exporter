@@ -48,18 +48,23 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
   ```
   # Path where HDFS NameNode stores the fsimage files
   # See https://hadoop.apache.org/docs/r2.7.3/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml#dfs.namenode.name.dir
-  fsImagePath : '<path to name node fsimage_0xxx file location>'
+  fsImagePath : '<path to name node fsimage_0xxx file location>'  
+  
   # Skip previously parsed fsimage files, as nothing changed since last invocation
-  skipPreviouslyParsed : true
+  skipPreviouslyParsed : true  
+  
   # Optional: Compute path stats additionally for following paths:
   paths:
     - '/tmp'
     - '/datalake'
     - '/user/foo.*bar'
+    
   # Skip file size distribution for path based stats - will report as Summary instead of Histogram
-  skipFileDistributionForPathStats : true
+  skipFileDistributionForPathStats : true  
+  
   # Skip file size distribution for group based stats - will report as Summary instead of Histogram
-  skipFileDistributionForGroupStats : false
+  skipFileDistributionForGroupStats : false  
+  
   # Skip file size distribution for user based stats - will report as Summary instead of Histogram
   skipFileDistributionForUserStats : false
   ```
