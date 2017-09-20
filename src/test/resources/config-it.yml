@@ -4,9 +4,8 @@ fsImagePath : 'src/test/resources'
 # Skip previously parsed fsimage files, as nothing changed since last invocation
 skipPreviouslyParsed : true
 # Skip file size distribution for group based stats
-skipFileDistributionForGroupStats : true
+skipFileDistributionForGroupStats : false
 # Skip file size distribution for user based stats
-# Good for figuring out who has too many small files.
 skipFileDistributionForUserStats : false
 
 # Compute per path stats

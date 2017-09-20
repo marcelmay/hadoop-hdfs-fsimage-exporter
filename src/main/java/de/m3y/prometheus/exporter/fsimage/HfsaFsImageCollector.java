@@ -120,6 +120,22 @@ public class HfsaFsImageCollector extends Collector {
             .labelNames(LABEL_PATH)
             .help(HELP_NUMBER_OF_BLOCKS).register();
 
+    // By path set
+    static final String METRIC_PREFIX_PATH_SET = METRIC_PREFIX + "path_set_";
+    public static final String LABEL_PATH_SET = "path_set";
+    static final Gauge METRIC_PATH_SET_SUM_DIRS = Gauge.build()
+            .name(METRIC_PREFIX_PATH_SET + METRIC_POSTFIX_DIRS)
+            .labelNames(LABEL_PATH_SET)
+            .help(HELP_NUMBER_OF_DIRECTORIES).register();
+    static final Gauge METRIC_PATH_SET_SUM_LINKS = Gauge.build()
+            .name(METRIC_PREFIX_PATH_SET + METRIC_POSTFIX_LINKS)
+            .labelNames(LABEL_PATH_SET)
+            .help(HELP_NUMBER_OF_SYM_LINKS).register();
+    static final Gauge METRIC_PATH_SET_SUM_BLOCKS = Gauge.build()
+            .name(METRIC_PREFIX_PATH_SET + METRIC_POSTFIX_BLOCKS)
+            .labelNames(LABEL_PATH_SET)
+            .help(HELP_NUMBER_OF_BLOCKS).register();
+
     private FsImageReporter.Report currentReport;
 
     HfsaFsImageCollector(Config config) {
@@ -170,6 +186,16 @@ public class HfsaFsImageCollector extends Collector {
                 METRIC_PATH_SUM_BLOCKS.labels(pathStat.path).set(pathStat.sumBlocks);
             }
         }
+
+        // Path set stats
+        if (currentReport.hasPathSetStats()) {
+            for (FsImageReporter.PathStats pathStat : currentReport.pathSetStats.values()) {
+                METRIC_PATH_SET_SUM_DIRS.labels(pathStat.path).set(pathStat.sumDirectories);
+                METRIC_PATH_SET_SUM_LINKS.labels(pathStat.path).set(pathStat.sumSymLinks);
+                METRIC_PATH_SET_SUM_BLOCKS.labels(pathStat.path).set(pathStat.sumBlocks);
+            }
+        }
+
         // Signal error, if background thread ran into error
         if (currentReport.error) {
             METRIC_SCRAPE_ERROR.inc();

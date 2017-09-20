@@ -136,11 +136,16 @@ public class FsImageReporter {
         final SimpleCollector pathFileSizeDistribution;
         final Function<String, PathStats> createPathStat;
         boolean error;
+        // PAth sets
+        final Map<String, PathStats> pathSetStats;
+        final SimpleCollector pathSetFileSizeDistribution;
+        final Function<String, PathStats> createPathSetStat;
 
         Report(Config config) {
             groupStats = Collections.synchronizedMap(new HashMap<>());
             userStats = Collections.synchronizedMap(new HashMap<>());
             pathStats = Collections.synchronizedMap(new HashMap<>());
+            pathSetStats = Collections.synchronizedMap(new HashMap<>());
 
             // Overall
             Histogram overallHistogram = HfsaFsImageCollector.METRIC_FILE_SIZE_BUCKETS_BUILDER.create();
@@ -200,6 +205,24 @@ public class FsImageReporter {
                 createPathStat = path -> new PathStats(path, new HistogramFileSizeMetricAdapter(histogram.labels(path)));
                 pathFileSizeDistribution = histogram;
             }
+
+            // Path sets
+            if (config.skipFileDistributionForPathSetStats) {
+                Summary summary = Summary.build()
+                        .name(HfsaFsImageCollector.METRIC_PREFIX_PATH_SET + HfsaFsImageCollector.FSIZE)
+                        .labelNames(HfsaFsImageCollector.LABEL_PATH_SET)
+                        .help("Path set specific file size and file count").create();
+                createPathSetStat = path -> new PathStats(path, new SummaryFileSizeMetricAdapter(summary.labels(path)));
+                pathSetFileSizeDistribution = summary;
+            } else {
+                Histogram histogram = Histogram.build()
+                        .name(HfsaFsImageCollector.METRIC_PREFIX_PATH_SET + HfsaFsImageCollector.FSIZE)
+                        .buckets(Arrays.stream(HfsaFsImageCollector.BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
+                        .labelNames(HfsaFsImageCollector.LABEL_PATH_SET)
+                        .help("Path set specific file size distribution").create();
+                createPathSetStat = path -> new PathStats(path, new HistogramFileSizeMetricAdapter(histogram.labels(path)));
+                pathSetFileSizeDistribution = histogram;
+            }
         }
 
         public void unregister() {
@@ -208,6 +231,9 @@ public class FsImageReporter {
             CollectorRegistry.defaultRegistry.unregister(overallFleSizeDistribution);
             if (hasPathStats()) {
                 CollectorRegistry.defaultRegistry.unregister(pathFileSizeDistribution);
+            }
+            if (hasPathSetStats()) {
+                CollectorRegistry.defaultRegistry.unregister(pathSetFileSizeDistribution);
             }
         }
 
@@ -218,11 +244,19 @@ public class FsImageReporter {
             if (hasPathStats()) {
                 pathFileSizeDistribution.register();
             }
+            if (hasPathSetStats()) {
+                pathSetFileSizeDistribution.register();
+            }
         }
 
         boolean hasPathStats() {
             return null != pathStats && !pathStats.isEmpty();
         }
+
+        boolean hasPathSetStats() {
+            return null != pathSetStats && !pathSetStats.isEmpty();
+        }
+
     }
 
     private FsImageReporter() {
@@ -320,6 +354,9 @@ public class FsImageReporter {
         if (config.hasPaths()) {
             computePathStats(loader, config, report);
         }
+        if (config.hasPathSets()) {
+            computePathSetStatsParallel(loader, config, report);
+        }
 
         return report;
     }
@@ -333,6 +370,8 @@ public class FsImageReporter {
                 long t = System.currentTimeMillis();
                 final PathStats pathStats = report.pathStats.computeIfAbsent(p, report.createPathStat);
                 loader.visit(new PathStatVisitor(pathStats), p);
+                // Subtract start dir, as only child dirs count
+                pathStats.sumDirectories -= 1;
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Finished path stat for {} with {} total number of files in {}ms",
                             p, pathStats.fileSize.count(), System.currentTimeMillis() - t);
@@ -345,7 +384,37 @@ public class FsImageReporter {
         LOG.info("Finished {} path stats in {}ms", report.pathStats.size(), System.currentTimeMillis() - s);
     }
 
-    static Set<String> expandPaths(FSImageLoader loader, Set<String> paths) throws IOException {
+    private static void computePathSetStatsParallel(FSImageLoader loader, Config config, Report report) {
+        long s = System.currentTimeMillis();
+        config.getPathSets().entrySet().parallelStream().forEach(entry ->
+                computePathSetStats(loader, entry, config, report)
+        );
+        LOG.info("Finished {} path set stats in {}ms", report.pathSetStats.size(), System.currentTimeMillis() - s);
+    }
+
+    private static void computePathSetStats(FSImageLoader loader, Map.Entry<String, List<String>> entry, Config config, Report report) {
+        try {
+            Set<String> expandedPaths = expandPaths(loader, entry.getValue());
+            LOG.info("Expanded paths {} for path set stats {}", expandedPaths, config.getPaths());
+            long t = System.currentTimeMillis();
+            final PathStats pathStats = report.pathSetStats.computeIfAbsent(entry.getKey(), report.createPathSetStat);
+            final PathStatVisitor visitor = new PathStatVisitor(pathStats);
+            for (String path : expandedPaths) {
+                loader.visit(visitor, path);
+            }
+            // Subtract number of start dirs, as only child dirs count
+            pathStats.sumDirectories -= expandedPaths.size();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Finished path set stat for {} with {} total number of files in {}ms",
+                        entry.getKey(), pathStats.fileSize.count(), System.currentTimeMillis() - t);
+            }
+        } catch (IOException e) {
+            LOG.error("Can not traverse path set " + entry.getKey() + " using paths " + entry.getValue(), e);
+            report.error = true;
+        }
+    }
+
+    static Set<String> expandPaths(FSImageLoader loader, Collection<String> paths) throws IOException {
         Set<String> expandedPaths = new HashSet<>();
         for (String path : paths) {
             // If path does not exist, match child directories

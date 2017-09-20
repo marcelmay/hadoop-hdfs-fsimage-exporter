@@ -1,5 +1,7 @@
 package de.m3y.prometheus.exporter.fsimage;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -20,6 +22,7 @@ public class Config {
      * Paths can contain a regexp postfix, like "/users/ab.*", for matching direct child directories
      */
     private Set<String> paths;
+    private Map<String, List<String>> pathSets;
 
     /**
      * Skip file size distribution for group stats.
@@ -33,6 +36,10 @@ public class Config {
      * Skip file size distribution for path based stats.
      */
     boolean skipFileDistributionForPathStats = false;
+    /**
+     * Skip file size distribution for path set based stats.
+     */
+    boolean skipFileDistributionForPathSetStats = false;
 
     public String getFsImagePath() {
         return fsImagePath;
@@ -84,5 +91,25 @@ public class Config {
 
     public void setSkipFileDistributionForUserStats(boolean skipFileDistributionForUserStats) {
         this.skipFileDistributionForUserStats = skipFileDistributionForUserStats;
+    }
+
+    public Map<String, List<String>> getPathSets() {
+        return pathSets;
+    }
+
+    public void setPathSets(Map<String, List<String>> pathSets) {
+        this.pathSets = pathSets;
+    }
+
+    public boolean hasPathSets() {
+        return pathSets != null && !pathSets.isEmpty();
+    }
+
+    public boolean isSkipFileDistributionForPathSetStats() {
+        return skipFileDistributionForPathSetStats;
+    }
+
+    public void setSkipFileDistributionForPathSetStats(boolean skipFileDistributionForPathSetStats) {
+        this.skipFileDistributionForPathSetStats = skipFileDistributionForPathSetStats;
     }
 }

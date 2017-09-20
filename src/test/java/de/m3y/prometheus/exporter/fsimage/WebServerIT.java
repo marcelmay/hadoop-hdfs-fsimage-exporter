@@ -1,7 +1,8 @@
 package de.m3y.prometheus.exporter.fsimage;
 
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -17,6 +18,39 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+/**
+ * Test fsimage data:
+ *
+ * drwxr-xr-x   - mm   supergroup          0 2017-07-22 09:58 /datalake
+ * drwxr-xr-x   - mm   supergroup          0 2017-07-22 09:57 /datalake/asset1
+ * drwxr-xr-x   - mm   supergroup          0 2017-07-22 10:01 /datalake/asset2
+ * -rw-r--r--   1 mm   supergroup       1024 2017-07-22 10:00 /datalake/asset2/test_1KiB.img
+ * -rw-r--r--   1 mm   supergroup    2097152 2017-07-22 10:01 /datalake/asset2/test_2MiB.img
+ * drwxr-xr-x   - mm   supergroup          0 2017-07-22 10:01 /datalake/asset3
+ * drwxr-xr-x   - mm   supergroup          0 2017-07-22 10:01 /datalake/asset3/subasset1
+ * -rw-r--r--   1 mm   supergroup    2097152 2017-07-22 10:01 /datalake/asset3/subasset1/test_2MiB.img
+ * drwxr-xr-x   - mm   supergroup          0 2017-07-22 10:01 /datalake/asset3/subasset2
+ * -rw-r--r--   1 mm   supergroup    2097152 2017-07-22 10:01 /datalake/asset3/subasset2/test_2MiB.img
+ * -rw-r--r--   1 mm   supergroup    2097152 2017-07-22 10:01 /datalake/asset3/test_2MiB.img
+ * drwxr-xr-x   - mm   supergroup          0 2017-06-17 23:03 /test1
+ * drwxr-xr-x   - mm   supergroup          0 2017-06-17 23:03 /test2
+ * drwxr-xr-x   - mm   supergroup          0 2017-06-17 23:25 /test3
+ * drwxr-xr-x   - mm   supergroup          0 2017-06-17 23:11 /test3/foo
+ * drwxr-xr-x   - mm   supergroup          0 2017-06-17 23:25 /test3/foo/bar
+ * -rw-r--r--   1 mm   nobody       20971520 2017-06-17 23:13 /test3/foo/bar/test_20MiB.img
+ * -rw-r--r--   1 mm   supergroup    2097152 2017-06-17 23:10 /test3/foo/bar/test_2MiB.img
+ * -rw-r--r--   1 mm   supergroup   41943040 2017-06-17 23:25 /test3/foo/bar/test_40MiB.img
+ * -rw-r--r--   1 mm   supergroup    4145152 2017-06-17 23:10 /test3/foo/bar/test_4MiB.img
+ * -rw-r--r--   1 mm   supergroup    5181440 2017-06-17 23:10 /test3/foo/bar/test_5MiB.img
+ * -rw-r--r--   1 mm   supergroup   83886080 2017-06-17 23:25 /test3/foo/bar/test_80MiB.img
+ * -rw-r--r--   1 root root             1024 2017-06-17 23:09 /test3/foo/test_1KiB.img
+ * -rw-r--r--   1 mm   supergroup   20971520 2017-06-17 23:11 /test3/foo/test_20MiB.img
+ * -rw-r--r--   1 mm   supergroup    1048576 2017-06-17 23:07 /test3/test.img
+ * -rw-r--r--   1 foo  nobody      167772160 2017-06-17 23:25 /test3/test_160MiB.img
+ * -rw-r--r--   1 mm   supergroup       2048 2017-07-08 08:00 /test_2KiB.img
+ * drwxr-xr-x   - mm   supergroup          0 2017-06-17 23:04 /user
+ * drwxr-xr-x   - mm   supergroup          0 2017-06-17 23:04 /user/mm
+ */
 public class WebServerIT {
     private Server server;
     private String exporterBaseUrl;
@@ -25,7 +59,8 @@ public class WebServerIT {
     @Before
     public void setUp() throws Exception {
         Config config;
-        try (FileReader reader = new FileReader("example.yml")) {
+        try (Reader reader = new InputStreamReader(
+                Thread.currentThread().getContextClassLoader().getResourceAsStream("config-it.yml"))) {
             config = new Yaml().loadAs(reader, Config.class);
         }
 
@@ -170,15 +205,37 @@ public class WebServerIT {
         assertTrue(body.contains("fsimage_path_fsize_sum{path=\"/user/mm\",} 0.0"));
         assertTrue(body.contains("fsimage_path_fsize_count{path=\"/datalake/asset1\",} 0.0"));
         assertTrue(body.contains("fsimage_path_fsize_sum{path=\"/datalake/asset1\",} 0.0"));
-        assertTrue(body.contains("fsimage_path_dirs{path=\"/datalake/asset2\",} 1.0"));
-        assertTrue(body.contains("fsimage_path_dirs{path=\"/datalake/asset3\",} 3.0"));
-        assertTrue(body.contains("fsimage_path_dirs{path=\"/user/mm\",} 1.0"));
-        assertTrue(body.contains("fsimage_path_dirs{path=\"/datalake/asset1\",} 1.0"));
+        assertTrue(body.contains("fsimage_path_dirs{path=\"/datalake/asset2\",} 0.0"));
+        assertTrue(body.contains("fsimage_path_dirs{path=\"/datalake/asset3\",} 2.0"));
+        assertTrue(body.contains("fsimage_path_dirs{path=\"/user/mm\",} 0.0"));
+        assertTrue(body.contains("fsimage_path_dirs{path=\"/datalake/asset1\",} 0.0"));
 
         assertTrue(body.contains("fsimage_path_links{path=\"/datalake/asset2\",} 0.0"));
         assertTrue(body.contains("fsimage_path_links{path=\"/datalake/asset3\",} 0.0"));
         assertTrue(body.contains("fsimage_path_links{path=\"/user/mm\",} 0.0"));
         assertTrue(body.contains("fsimage_path_links{path=\"/datalake/asset1\",} 0.0"));
+
+        // Path sets
+        //  'userMmAndFooAndAsset1' : [
+        //      '/datalake/asset3',
+        //      '/user/mm',
+        //      '/user/foo'
+        //  ]
+        assertTrue(body.contains("fsimage_path_set_dirs{path_set=\"userMmAndFooAndAsset1\",} 2.0"));
+        assertTrue(body.contains("fsimage_path_set_blocks{path_set=\"userMmAndFooAndAsset1\",} 3.0"));
+        assertTrue(body.contains("fsimage_path_set_links{path_set=\"userMmAndFooAndAsset1\",} 0.0"));
+        assertTrue(body.contains("fsimage_path_set_fsize_count{path_set=\"userMmAndFooAndAsset1\",} 3.0"));
+        assertTrue(body.contains("fsimage_path_set_fsize_sum{path_set=\"userMmAndFooAndAsset1\",} 6291456.0"));
+        //  'datalakeAsset1and2' : [
+        //      '/datalake/asset1',
+        //      '/datalake/asset2'
+        //  ]
+        assertTrue(body.contains("fsimage_path_set_dirs{path_set=\"datalakeAsset1and2\",} 0.0"));
+        assertTrue(body.contains("fsimage_path_set_blocks{path_set=\"datalakeAsset1and2\",} 2.0"));
+        assertTrue(body.contains("fsimage_path_set_links{path_set=\"datalakeAsset1and2\",} 0.0"));
+        assertTrue(body.contains("fsimage_path_set_fsize_count{path_set=\"datalakeAsset1and2\",} 2.0"));
+        assertTrue(body.contains("fsimage_path_set_fsize_sum{path_set=\"datalakeAsset1and2\",} 2098176.0"));
+        
 
         // Test welcome page
         response = getResponse(exporterBaseUrl);
