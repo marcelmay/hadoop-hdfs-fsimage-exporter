@@ -32,19 +32,19 @@ public class BuildInfoExporter extends Collector {
     }
 
     public String getAppVersion() {
-        return "<will be replaced>";
+        return "<will be replaced>"; // NOSONAR
     }
 
     public String getBuildTimeStamp() {
-        return "<will be replaced>";
+        return "<will be replaced>"; // NOSONAR
     }
 
     public String getBuildScmVersion() {
-        return "<will be replaced>";
+        return "<will be replaced>"; // NOSONAR
     }
 
     public String getBuildScmBranch() {
-        return "<will be replaced>";
+        return "<will be replaced>"; // NOSONAR
     }
 
     @Override
