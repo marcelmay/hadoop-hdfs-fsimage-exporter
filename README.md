@@ -84,8 +84,8 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
     '/datalake/asset2'
     ]
     
-# Skip file size distribution for path sets based stats
-skipFileDistributionForPathSetStats : true
+  # Skip file size distribution for path sets based stats
+  skipFileDistributionForPathSetStats : true
   ```
   Note that the flag toggling file size distribution switches between [Summary](https://github.com/prometheus/client_java#summary) (few time series)
   and [Histogram](https://github.com/prometheus/client_java#histogram) (many time series)
