@@ -395,7 +395,7 @@ public class FsImageReporter {
     private static void computePathSetStats(FSImageLoader loader, Map.Entry<String, List<String>> entry, Config config, Report report) {
         try {
             Set<String> expandedPaths = expandPaths(loader, entry.getValue());
-            LOG.info("Expanded paths {} for path set stats {}", expandedPaths, config.getPaths());
+            LOG.info("Expanded paths {} for path set stats {}", expandedPaths, entry.getKey());
             long t = System.currentTimeMillis();
             final PathStats pathStats = report.pathSetStats.computeIfAbsent(entry.getKey(), report.createPathSetStat);
             final PathStatVisitor visitor = new PathStatVisitor(pathStats);
