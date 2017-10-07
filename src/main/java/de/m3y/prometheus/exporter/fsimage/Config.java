@@ -1,13 +1,21 @@
 package de.m3y.prometheus.exporter.fsimage;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import de.m3y.hadoop.hdfs.hfsa.util.IECBinary;
 
 /**
  * Config options for collector.
  */
 public class Config {
+    /**
+     * Default file size distribution bucket limits.
+     */
+    private static final List<String> DEFAULT_FILE_SIZE_DISTRIBUTION_BUCKETS =
+            Collections.unmodifiableList(Arrays.asList(
+                    "0", "1 MiB", "32 MiB", "64 MiB", "128 MiB", "1 GiB", "10 GiB"
+            ));
+
     /**
      * Path where HDFS NameNode stores fsimage file snapshots
      */
@@ -22,24 +30,33 @@ public class Config {
      * Paths can contain a regexp postfix, like "/users/ab.*", for matching direct child directories
      */
     private Set<String> paths;
+    /**
+     * Path sets are grouped paths by an identifier.
+     *
+     * @see #paths
+     */
     private Map<String, List<String>> pathSets;
 
     /**
      * Skip file size distribution for group stats.
      */
-    boolean skipFileDistributionForGroupStats = false;
+    private boolean skipFileDistributionForGroupStats = false;
     /**
      * Skip file size distribution for user stats.
      */
-    boolean skipFileDistributionForUserStats = false;
+    private boolean skipFileDistributionForUserStats = false;
     /**
      * Skip file size distribution for path based stats.
      */
-    boolean skipFileDistributionForPathStats = false;
+    private boolean skipFileDistributionForPathStats = false;
     /**
      * Skip file size distribution for path set based stats.
      */
-    boolean skipFileDistributionForPathSetStats = false;
+    private boolean skipFileDistributionForPathSetStats = false;
+    /**
+     * File size distribution buckets, supporting IEC units of KiB, MiB, GiB, TiB, PiB
+     */
+    private List<String> fileSizeDistributionBuckets = DEFAULT_FILE_SIZE_DISTRIBUTION_BUCKETS;
 
     public String getFsImagePath() {
         return fsImagePath;
@@ -111,5 +128,17 @@ public class Config {
 
     public void setSkipFileDistributionForPathSetStats(boolean skipFileDistributionForPathSetStats) {
         this.skipFileDistributionForPathSetStats = skipFileDistributionForPathSetStats;
+    }
+
+    public List<String> getFileSizeDistributionBuckets() {
+        return fileSizeDistributionBuckets;
+    }
+
+    public void setFileSizeDistributionBuckets(List<String> fileSizeDistributionBuckets) {
+        this.fileSizeDistributionBuckets = fileSizeDistributionBuckets;
+    }
+
+    public double[] getFileSizeDistributionBucketsAsDoubles() {
+        return getFileSizeDistributionBuckets().stream().mapToDouble(IECBinary::parse).toArray();
     }
 }

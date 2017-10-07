@@ -4,9 +4,8 @@ fsImagePath : 'src/test/resources'
 # Skip previously parsed fsimage files, as nothing changed since last invocation
 skipPreviouslyParsed : true
 # Skip file size distribution for group based stats
-skipFileDistributionForGroupStats : true
+skipFileDistributionForGroupStats : false
 # Skip file size distribution for user based stats
-# Good for figuring out who has too many small files.
 skipFileDistributionForUserStats : false
 
 # Compute per path stats
@@ -32,4 +31,4 @@ pathSets:
 # Skip file size distribution for path sets based stats
 skipFileDistributionForPathSetStats : true
 # Configure file size distribution buckets, supporting IEC units of KiB, MiB, GiB, TiB, PiB
-fileSizeDistributionBuckets: ['0','1MiB', '32MiB', '64MiB', '128MiB', '1GiB', '10GiB']
+fileSizeDistributionBuckets: ['0','42','1MiB', '32MiB', '64MiB', '128MiB', '1GiB', '12GiB']

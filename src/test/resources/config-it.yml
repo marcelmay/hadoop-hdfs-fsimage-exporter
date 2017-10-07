@@ -30,3 +30,5 @@ pathSets:
     ]
 # Skip file size distribution for path sets based stats
 skipFileDistributionForPathSetStats : true
+# Configure file size distribution buckets, supporting IEC units of KiB, MiB, GiB, TiB, PiB
+fileSizeDistributionBuckets: ['0','1 MiB', '32MiB', '64MiB', '128MiB', '1GiB', '10GiB']

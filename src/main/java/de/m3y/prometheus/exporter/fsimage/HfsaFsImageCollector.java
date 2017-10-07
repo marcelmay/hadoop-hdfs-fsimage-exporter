@@ -1,7 +1,6 @@
 package de.m3y.prometheus.exporter.fsimage;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -11,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
-import io.prometheus.client.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,18 +33,6 @@ public class HfsaFsImageCollector extends Collector {
     final FsImageWatcher fsImageWatcher;
 
 
-    private static final long SIZE_1_MIB = 1024L * 1024L;
-    private static final long SIZE_1_GIB = 1024L * SIZE_1_MIB;
-    static final long[] BUCKET_UPPER_BOUNDARIES = new long[]{
-            0L /* 0 B */,
-            SIZE_1_MIB /* 1 MiB */,
-            32L * SIZE_1_MIB /* 32 MiB */,
-            64L * SIZE_1_MIB /* 64 MiB */,
-            128L * SIZE_1_MIB /* 128 MiB */,
-            SIZE_1_GIB /* 1 GiB */,
-            10L * SIZE_1_GIB /* 10 GiB */
-    };
-
     private static final String METRIC_POSTFIX_DIRS = "dirs";
     private static final String METRIC_POSTFIX_BLOCKS = "blocks";
     private static final String METRIC_POSTFIX_LINKS = "links";
@@ -67,11 +53,6 @@ public class HfsaFsImageCollector extends Collector {
     static final Gauge METRIC_SUM_BLOCKS = Gauge.build()
             .name(METRIC_PREFIX + METRIC_POSTFIX_BLOCKS)
             .help(HELP_NUMBER_OF_BLOCKS).register();
-    static final Histogram.Builder METRIC_FILE_SIZE_BUCKETS_BUILDER = Histogram.build()
-            .name(METRIC_PREFIX + FSIZE)
-            .buckets(Arrays.stream(BUCKET_UPPER_BOUNDARIES).asDoubleStream().toArray())
-            .help("Overall file size distribution");
-
 
     // By user
     static final String METRIC_PREFIX_USER = METRIC_PREFIX + "user_";
