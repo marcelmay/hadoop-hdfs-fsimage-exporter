@@ -13,8 +13,20 @@ import io.prometheus.client.Gauge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HfsaFsImageCollector extends Collector {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HfsaFsImageCollector.class);
+/**
+ * Collects stats from Hadoop FSImage.
+ * <p/>
+ * Note:
+ * <ul>
+ * <li>A background thread watches and parses FSImage, therefore not blocking metrics collection itself.
+ * Parse time depends on FSImage size, and can be up to minutes.
+ *
+ * @see {@link FsImageWatcher}
+ * </li>
+ * </ul>
+ */
+public class FsImageCollector extends Collector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FsImageCollector.class);
 
     static final String METRIC_PREFIX = "fsimage_";
 
@@ -119,7 +131,7 @@ public class HfsaFsImageCollector extends Collector {
 
     private FsImageReporter.Report currentReport;
 
-    HfsaFsImageCollector(Config config) {
+    FsImageCollector(Config config) {
         this.config = config;
 
         final String path = config.getFsImagePath();

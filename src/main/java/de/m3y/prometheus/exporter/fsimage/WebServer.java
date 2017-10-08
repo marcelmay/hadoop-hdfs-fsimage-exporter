@@ -16,7 +16,7 @@ public class WebServer {
 
     WebServer configure(Config config, String address, int port) {
         // Metrics
-        new HfsaFsImageCollector(config).register();
+        new FsImageCollector(config).register();
         new MemoryPoolsExports().register();
 
         final BuildInfoExporter buildInfo = new BuildInfoExporter("fsimage_exporter_",

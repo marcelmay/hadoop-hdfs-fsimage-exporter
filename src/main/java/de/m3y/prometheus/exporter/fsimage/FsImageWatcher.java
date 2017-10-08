@@ -14,7 +14,7 @@ import io.prometheus.client.Summary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static de.m3y.prometheus.exporter.fsimage.HfsaFsImageCollector.METRIC_PREFIX;
+import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.METRIC_PREFIX;
 
 /**
  * Watches and (pre-)loads FSImage files.

@@ -17,8 +17,8 @@ import org.apache.hadoop.hdfs.server.namenode.FsImageProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static de.m3y.prometheus.exporter.fsimage.HfsaFsImageCollector.FSIZE;
-import static de.m3y.prometheus.exporter.fsimage.HfsaFsImageCollector.METRIC_PREFIX;
+import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.FSIZE;
+import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.METRIC_PREFIX;
 
 /**
  * Generates a report for a loaded FSImage.
@@ -164,15 +164,15 @@ public class FsImageReporter {
             // Group
             if (config.isSkipFileDistributionForGroupStats()) {
                 Summary summary = Summary.build()
-                        .name(HfsaFsImageCollector.METRIC_PREFIX_GROUP + FSIZE)
-                        .labelNames(HfsaFsImageCollector.LABEL_GROUP_NAME)
+                        .name(FsImageCollector.METRIC_PREFIX_GROUP + FSIZE)
+                        .labelNames(FsImageCollector.LABEL_GROUP_NAME)
                         .help("Per group file size and file count").create();
                 createGroupStats = groupName -> new GroupStats(groupName, new SummaryFileSizeMetricAdapter(summary.labels(groupName)));
                 groupFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
-                        .name(HfsaFsImageCollector.METRIC_PREFIX_GROUP + FSIZE)
-                        .labelNames(HfsaFsImageCollector.LABEL_GROUP_NAME)
+                        .name(FsImageCollector.METRIC_PREFIX_GROUP + FSIZE)
+                        .labelNames(FsImageCollector.LABEL_GROUP_NAME)
                         .buckets(configuredBuckets)
                         .help("Per group file size distribution.").create();
                 createGroupStats = groupName -> new GroupStats(groupName, new HistogramFileSizeMetricAdapter(histogram.labels(groupName)));
@@ -182,15 +182,15 @@ public class FsImageReporter {
             // User
             if (config.isSkipFileDistributionForUserStats()) {
                 Summary summary = Summary.build()
-                        .name(HfsaFsImageCollector.METRIC_PREFIX_USER + FSIZE)
-                        .labelNames(HfsaFsImageCollector.LABEL_USER_NAME)
+                        .name(FsImageCollector.METRIC_PREFIX_USER + FSIZE)
+                        .labelNames(FsImageCollector.LABEL_USER_NAME)
                         .help("Per user file size and file count").create();
                 createUserStat = userName -> new UserStats(userName, new SummaryFileSizeMetricAdapter(summary.labels(userName)));
                 userFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
-                        .name(HfsaFsImageCollector.METRIC_PREFIX_USER + FSIZE)
-                        .labelNames(HfsaFsImageCollector.LABEL_USER_NAME)
+                        .name(FsImageCollector.METRIC_PREFIX_USER + FSIZE)
+                        .labelNames(FsImageCollector.LABEL_USER_NAME)
                         .buckets(configuredBuckets)
                         .help("Per user file size distribution").create();
                 createUserStat = userName -> new UserStats(userName, new HistogramFileSizeMetricAdapter(histogram.labels(userName)));
@@ -200,16 +200,16 @@ public class FsImageReporter {
             // Paths
             if (config.isSkipFileDistributionForPathStats()) {
                 Summary summary = Summary.build()
-                        .name(HfsaFsImageCollector.METRIC_PREFIX_PATH + FSIZE)
-                        .labelNames(HfsaFsImageCollector.LABEL_PATH)
+                        .name(FsImageCollector.METRIC_PREFIX_PATH + FSIZE)
+                        .labelNames(FsImageCollector.LABEL_PATH)
                         .help("Path specific file size and file count").create();
                 createPathStat = path -> new PathStats(path, new SummaryFileSizeMetricAdapter(summary.labels(path)));
                 pathFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
-                        .name(HfsaFsImageCollector.METRIC_PREFIX_PATH + FSIZE)
+                        .name(FsImageCollector.METRIC_PREFIX_PATH + FSIZE)
                         .buckets(configuredBuckets)
-                        .labelNames(HfsaFsImageCollector.LABEL_PATH)
+                        .labelNames(FsImageCollector.LABEL_PATH)
                         .help("Path specific file size distribution").create();
                 createPathStat = path -> new PathStats(path, new HistogramFileSizeMetricAdapter(histogram.labels(path)));
                 pathFileSizeDistribution = histogram;
@@ -218,16 +218,16 @@ public class FsImageReporter {
             // Path sets
             if (config.isSkipFileDistributionForPathSetStats()) {
                 Summary summary = Summary.build()
-                        .name(HfsaFsImageCollector.METRIC_PREFIX_PATH_SET + FSIZE)
-                        .labelNames(HfsaFsImageCollector.LABEL_PATH_SET)
+                        .name(FsImageCollector.METRIC_PREFIX_PATH_SET + FSIZE)
+                        .labelNames(FsImageCollector.LABEL_PATH_SET)
                         .help("Path set specific file size and file count").create();
                 createPathSetStat = path -> new PathStats(path, new SummaryFileSizeMetricAdapter(summary.labels(path)));
                 pathSetFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
-                        .name(HfsaFsImageCollector.METRIC_PREFIX_PATH_SET + FSIZE)
+                        .name(FsImageCollector.METRIC_PREFIX_PATH_SET + FSIZE)
                         .buckets(configuredBuckets)
-                        .labelNames(HfsaFsImageCollector.LABEL_PATH_SET)
+                        .labelNames(FsImageCollector.LABEL_PATH_SET)
                         .help("Path set specific file size distribution").create();
                 createPathSetStat = path -> new PathStats(path, new HistogramFileSizeMetricAdapter(histogram.labels(path)));
                 pathSetFileSizeDistribution = histogram;
