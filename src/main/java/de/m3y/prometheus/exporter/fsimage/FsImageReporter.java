@@ -123,23 +123,25 @@ public class FsImageReporter {
 
     /**
      * Contains collected statistics.
-     * <p>
-     * Note: Uses histogram metrics, as precomputed values can not be set on Prometheus histogram directly.
      */
     static class Report {
+        // Overall stats
         final OverallStats overallStats;
         final SimpleCollector overallFleSizeDistribution;
+        // Group stats
         final Map<String, GroupStats> groupStats;
         final SimpleCollector groupFileSizeDistribution;
         final Function<String, GroupStats> createGroupStats;
+        // User stats
         final Map<String, UserStats> userStats;
         final SimpleCollector userFileSizeDistribution;
         final Function<String, UserStats> createUserStat;
+        // Path stats
         final Map<String, PathStats> pathStats;
         final SimpleCollector<?> pathFileSizeDistribution;
         final Function<String, PathStats> createPathStat;
         boolean error;
-        // PAth sets
+        // Path sets
         final Map<String, PathStats> pathSetStats;
         final SimpleCollector pathSetFileSizeDistribution;
         final Function<String, PathStats> createPathSetStat;

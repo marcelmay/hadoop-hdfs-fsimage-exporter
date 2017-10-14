@@ -15,13 +15,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Collects stats from Hadoop FSImage.
- * <p/>
+ * <p>
  * Note:
  * <ul>
  * <li>A background thread watches and parses FSImage, therefore not blocking metrics collection itself.
  * Parse time depends on FSImage size, and can be up to minutes.
  *
- * @see {@link FsImageWatcher}
+ * See {@link FsImageWatcher}
  * </li>
  * </ul>
  */
