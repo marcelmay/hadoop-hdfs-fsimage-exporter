@@ -16,7 +16,9 @@ public class WebServer {
 
     WebServer configure(Config config, String address, int port) {
         // Metrics
-        new FsImageCollector(config).register();
+        final FsImageCollector fsImageCollector = new FsImageCollector(config);
+        fsImageCollector.register();
+
         new MemoryPoolsExports().register();
 
         final BuildInfoExporter buildInfo = new BuildInfoExporter("fsimage_exporter_",
@@ -28,7 +30,13 @@ public class WebServer {
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");
         server.setHandler(context);
-        context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
+        context.addServlet(new ServletHolder(new MetricsServlet(){
+            @Override
+            public void destroy() {
+                super.destroy();
+                fsImageCollector.shutdown();
+            }
+        }), "/metrics");
         context.addServlet(new ServletHolder(new HomePageServlet(config, buildInfo)), "/");
 
         return this;

@@ -130,6 +130,7 @@ public class FsImageCollector extends Collector {
             .help(HELP_NUMBER_OF_BLOCKS).register();
 
     private FsImageReporter.Report currentReport;
+    private ScheduledExecutorService scheduler;
 
     FsImageCollector(Config config) {
         this.config = config;
@@ -144,7 +145,7 @@ public class FsImageCollector extends Collector {
             throw new IllegalArgumentException(fsImageDir.getAbsolutePath() + " does not exist");
         }
         fsImageWatcher = new FsImageWatcher(fsImageDir, config);
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleWithFixedDelay(fsImageWatcher, 60, 60, TimeUnit.SECONDS);
     }
 
@@ -217,6 +218,13 @@ public class FsImageCollector extends Collector {
         }
 
         return Collections.emptyList(); // Directly registered counters
+    }
+
+    /**
+     * Closes resources such as scheduler for background parsing thread.
+     */
+    public void shutdown() {
+        scheduler.shutdown();
     }
 }
 
