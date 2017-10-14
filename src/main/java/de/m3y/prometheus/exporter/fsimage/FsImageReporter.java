@@ -26,27 +26,27 @@ import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.METRIC_PREFIX;
 public class FsImageReporter {
     private static final Logger LOG = LoggerFactory.getLogger(FSImageLoader.class);
 
-    interface FileSizeMetricAdapter {
-        void observeFileSize(long fileSize);
+    interface MetricAdapter {
+        void observe(long metricValue);
 
         long count();
     }
 
-    static class HistogramFileSizeMetricAdapter implements FileSizeMetricAdapter {
-        final Histogram.Child fileSizeDistributionChild;
+    static class HistogramMetricAdapter implements MetricAdapter {
+        final Histogram.Child child;
 
-        HistogramFileSizeMetricAdapter(Histogram.Child fileSizeDistributionChild) {
-            this.fileSizeDistributionChild = fileSizeDistributionChild;
+        HistogramMetricAdapter(Histogram.Child child) {
+            this.child = child;
         }
 
         @Override
-        public void observeFileSize(long fileSize) {
-            fileSizeDistributionChild.observe(fileSize);
+        public void observe(long metricValue) {
+            child.observe(metricValue);
         }
 
         @Override
         public long count() {
-            return (long) sum(fileSizeDistributionChild.get().buckets);
+            return (long) sum(child.get().buckets);
         }
 
         private static double sum(double[] doubles) {
@@ -58,64 +58,64 @@ public class FsImageReporter {
         }
     }
 
-    static class SummaryFileSizeMetricAdapter implements FileSizeMetricAdapter {
-        final Summary.Child fileSizeDistributionChild;
+    static class SummaryMetricAdapter implements MetricAdapter {
+        final Summary.Child child;
 
-        SummaryFileSizeMetricAdapter(Summary.Child fileSizeDistributionChild) {
-            this.fileSizeDistributionChild = fileSizeDistributionChild;
+        SummaryMetricAdapter(Summary.Child child) {
+            this.child = child;
         }
 
         @Override
-        public void observeFileSize(long fileSize) {
-            fileSizeDistributionChild.observe(fileSize);
+        public void observe(long metricValue) {
+            child.observe(metricValue);
         }
 
         @Override
         public long count() {
-            return (long) fileSizeDistributionChild.get().count;
+            return (long) child.get().count;
         }
     }
 
-    abstract static class AbstractFileSizeAwareStats {
+    abstract static class AbstractFileSystemStats {
         long sumDirectories;
         long sumBlocks;
         long sumSymLinks;
-        final FileSizeMetricAdapter fileSize;
+        final MetricAdapter fileSize;
 
-        protected AbstractFileSizeAwareStats(FileSizeMetricAdapter fileSize) {
+        protected AbstractFileSystemStats(MetricAdapter fileSize) {
             this.fileSize = fileSize;
         }
     }
 
-    static class OverallStats extends AbstractFileSizeAwareStats {
-        OverallStats(FileSizeMetricAdapter fileSize) {
+    static class OverallStats extends AbstractFileSystemStats {
+        OverallStats(MetricAdapter fileSize) {
             super(fileSize);
         }
         // No additional attributes, for now.
     }
 
-    static class UserStats extends AbstractFileSizeAwareStats {
+    static class UserStats extends AbstractFileSystemStats {
         final String userName;
 
-        UserStats(String userName, FileSizeMetricAdapter fileSize) {
+        UserStats(String userName, MetricAdapter fileSize) {
             super(fileSize);
             this.userName = userName;
         }
     }
 
-    static class GroupStats extends AbstractFileSizeAwareStats {
+    static class GroupStats extends AbstractFileSystemStats {
         final String groupName;
 
-        GroupStats(String groupName, FileSizeMetricAdapter fileSize) {
+        GroupStats(String groupName, MetricAdapter fileSize) {
             super(fileSize);
             this.groupName = groupName;
         }
     }
 
-    static class PathStats extends AbstractFileSizeAwareStats {
+    static class PathStats extends AbstractFileSystemStats {
         final String path;
 
-        PathStats(String path, FileSizeMetricAdapter fileSize) {
+        PathStats(String path, MetricAdapter fileSize) {
             super(fileSize);
             this.path = path;
         }
@@ -161,7 +161,7 @@ public class FsImageReporter {
                     .help("Overall file size distribution")
                     .create();
             overallFleSizeDistribution = overallHistogram;
-            overallStats = new OverallStats(new HistogramFileSizeMetricAdapter(overallHistogram.labels()));
+            overallStats = new OverallStats(new HistogramMetricAdapter(overallHistogram.labels()));
 
             // Group
             if (config.isSkipFileDistributionForGroupStats()) {
@@ -169,7 +169,7 @@ public class FsImageReporter {
                         .name(FsImageCollector.METRIC_PREFIX_GROUP + FSIZE)
                         .labelNames(FsImageCollector.LABEL_GROUP_NAME)
                         .help("Per group file size and file count").create();
-                createGroupStats = groupName -> new GroupStats(groupName, new SummaryFileSizeMetricAdapter(summary.labels(groupName)));
+                createGroupStats = groupName -> new GroupStats(groupName, new SummaryMetricAdapter(summary.labels(groupName)));
                 groupFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
@@ -177,7 +177,7 @@ public class FsImageReporter {
                         .labelNames(FsImageCollector.LABEL_GROUP_NAME)
                         .buckets(configuredBuckets)
                         .help("Per group file size distribution.").create();
-                createGroupStats = groupName -> new GroupStats(groupName, new HistogramFileSizeMetricAdapter(histogram.labels(groupName)));
+                createGroupStats = groupName -> new GroupStats(groupName, new HistogramMetricAdapter(histogram.labels(groupName)));
                 groupFileSizeDistribution = histogram;
             }
 
@@ -187,7 +187,7 @@ public class FsImageReporter {
                         .name(FsImageCollector.METRIC_PREFIX_USER + FSIZE)
                         .labelNames(FsImageCollector.LABEL_USER_NAME)
                         .help("Per user file size and file count").create();
-                createUserStat = userName -> new UserStats(userName, new SummaryFileSizeMetricAdapter(summary.labels(userName)));
+                createUserStat = userName -> new UserStats(userName, new SummaryMetricAdapter(summary.labels(userName)));
                 userFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
@@ -195,7 +195,7 @@ public class FsImageReporter {
                         .labelNames(FsImageCollector.LABEL_USER_NAME)
                         .buckets(configuredBuckets)
                         .help("Per user file size distribution").create();
-                createUserStat = userName -> new UserStats(userName, new HistogramFileSizeMetricAdapter(histogram.labels(userName)));
+                createUserStat = userName -> new UserStats(userName, new HistogramMetricAdapter(histogram.labels(userName)));
                 userFileSizeDistribution = histogram;
             }
 
@@ -205,7 +205,7 @@ public class FsImageReporter {
                         .name(FsImageCollector.METRIC_PREFIX_PATH + FSIZE)
                         .labelNames(FsImageCollector.LABEL_PATH)
                         .help("Path specific file size and file count").create();
-                createPathStat = path -> new PathStats(path, new SummaryFileSizeMetricAdapter(summary.labels(path)));
+                createPathStat = path -> new PathStats(path, new SummaryMetricAdapter(summary.labels(path)));
                 pathFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
@@ -213,7 +213,7 @@ public class FsImageReporter {
                         .buckets(configuredBuckets)
                         .labelNames(FsImageCollector.LABEL_PATH)
                         .help("Path specific file size distribution").create();
-                createPathStat = path -> new PathStats(path, new HistogramFileSizeMetricAdapter(histogram.labels(path)));
+                createPathStat = path -> new PathStats(path, new HistogramMetricAdapter(histogram.labels(path)));
                 pathFileSizeDistribution = histogram;
             }
 
@@ -223,7 +223,7 @@ public class FsImageReporter {
                         .name(FsImageCollector.METRIC_PREFIX_PATH_SET + FSIZE)
                         .labelNames(FsImageCollector.LABEL_PATH_SET)
                         .help("Path set specific file size and file count").create();
-                createPathSetStat = path -> new PathStats(path, new SummaryFileSizeMetricAdapter(summary.labels(path)));
+                createPathSetStat = path -> new PathStats(path, new SummaryMetricAdapter(summary.labels(path)));
                 pathSetFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
@@ -231,7 +231,7 @@ public class FsImageReporter {
                         .buckets(configuredBuckets)
                         .labelNames(FsImageCollector.LABEL_PATH_SET)
                         .help("Path set specific file size distribution").create();
-                createPathSetStat = path -> new PathStats(path, new HistogramFileSizeMetricAdapter(histogram.labels(path)));
+                createPathSetStat = path -> new PathStats(path, new HistogramMetricAdapter(histogram.labels(path)));
                 pathSetFileSizeDistribution = histogram;
             }
         }
@@ -289,7 +289,7 @@ public class FsImageReporter {
                 final long fileBlocks = f.getBlocksCount();
                 synchronized (overallStats) {
                     overallStats.sumBlocks += fileBlocks;
-                    overallStats.fileSize.observeFileSize(fileSize);
+                    overallStats.fileSize.observe(fileSize);
                 }
 
                 // Group stats
@@ -297,7 +297,7 @@ public class FsImageReporter {
                 final GroupStats groupStat = report.groupStats.computeIfAbsent(groupName, report.createGroupStats);
                 synchronized (groupStat) {
                     groupStat.sumBlocks += fileBlocks;
-                    groupStat.fileSize.observeFileSize(fileSize);
+                    groupStat.fileSize.observe(fileSize);
                 }
 
                 // User stats
@@ -305,7 +305,7 @@ public class FsImageReporter {
                 UserStats userStat = report.userStats.computeIfAbsent(userName, report.createUserStat);
                 synchronized (userStat) {
                     userStat.sumBlocks += fileBlocks;
-                    userStat.fileSize.observeFileSize(fileSize);
+                    userStat.fileSize.observe(fileSize);
                 }
             }
 
@@ -484,7 +484,7 @@ public class FsImageReporter {
             FsImageProto.INodeSection.INodeFile f = inode.getFile();
             pathStats.sumBlocks += f.getBlocksCount();
             final long fileSize = FSImageLoader.getFileSize(f);
-            pathStats.fileSize.observeFileSize(fileSize);
+            pathStats.fileSize.observe(fileSize);
         }
 
         @Override

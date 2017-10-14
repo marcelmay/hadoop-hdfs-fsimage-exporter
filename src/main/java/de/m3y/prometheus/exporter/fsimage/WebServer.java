@@ -49,7 +49,7 @@ public class WebServer {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 3) {
-            System.err.println("Usage: WebServer <hostname> <port> <yml configuration file>");
+            System.err.println("Usage: WebServer <hostname> <port> <yml configuration file>"); // NOSONAR
             System.exit(1);
         }
 
