@@ -49,6 +49,7 @@ public class FsImageCollector extends Collector {
     private static final String METRIC_POSTFIX_BLOCKS = "blocks";
     private static final String METRIC_POSTFIX_LINKS = "links";
     static final String FSIZE = "fsize";
+    static final String REPLICATION = "replication";
     static final String LABEL_USER_NAME = "user_name";
 
     private static final String HELP_NUMBER_OF_SYM_LINKS = "Number of sym links.";

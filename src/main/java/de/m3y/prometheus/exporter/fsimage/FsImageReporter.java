@@ -17,8 +17,7 @@ import org.apache.hadoop.hdfs.server.namenode.FsImageProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.FSIZE;
-import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.METRIC_PREFIX;
+import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.*;
 
 /**
  * Generates a report for a loaded FSImage.
@@ -88,18 +87,23 @@ public class FsImageReporter {
     }
 
     static class OverallStats extends AbstractFileSystemStats {
-        OverallStats(MetricAdapter fileSize) {
+        final Summary replication;
+
+        OverallStats(MetricAdapter fileSize, Summary replication) {
             super(fileSize);
+            this.replication = replication;
         }
         // No additional attributes, for now.
     }
 
     static class UserStats extends AbstractFileSystemStats {
         final String userName;
+        final MetricAdapter replication;
 
-        UserStats(String userName, MetricAdapter fileSize) {
+        UserStats(String userName, MetricAdapter fileSize, MetricAdapter replication) {
             super(fileSize);
             this.userName = userName;
+            this.replication = replication;
         }
     }
 
@@ -128,6 +132,7 @@ public class FsImageReporter {
         // Overall stats
         final OverallStats overallStats;
         final SimpleCollector overallFleSizeDistribution;
+        final Summary overallReplication;
         // Group stats
         final Map<String, GroupStats> groupStats;
         final SimpleCollector groupFileSizeDistribution;
@@ -136,6 +141,7 @@ public class FsImageReporter {
         final Map<String, UserStats> userStats;
         final SimpleCollector userFileSizeDistribution;
         final Function<String, UserStats> createUserStat;
+        final Summary userReplication;
         // Path stats
         final Map<String, PathStats> pathStats;
         final SimpleCollector<?> pathFileSizeDistribution;
@@ -161,7 +167,10 @@ public class FsImageReporter {
                     .help("Overall file size distribution")
                     .create();
             overallFleSizeDistribution = overallHistogram;
-            overallStats = new OverallStats(new HistogramMetricAdapter(overallHistogram.labels()));
+            overallReplication = Summary.build()
+                    .name(FsImageCollector.METRIC_PREFIX + REPLICATION)
+                    .help("Overall file replication").create();
+            overallStats = new OverallStats(new HistogramMetricAdapter(overallHistogram.labels()), overallReplication);
 
             // Group
             if (config.isSkipFileDistributionForGroupStats()) {
@@ -182,12 +191,18 @@ public class FsImageReporter {
             }
 
             // User
+            userReplication = Summary.build()
+                    .name(FsImageCollector.METRIC_PREFIX_USER + REPLICATION)
+                    .labelNames(FsImageCollector.LABEL_USER_NAME)
+                    .help("Per user file replication").create();
             if (config.isSkipFileDistributionForUserStats()) {
                 Summary summary = Summary.build()
                         .name(FsImageCollector.METRIC_PREFIX_USER + FSIZE)
                         .labelNames(FsImageCollector.LABEL_USER_NAME)
                         .help("Per user file size and file count").create();
-                createUserStat = userName -> new UserStats(userName, new SummaryMetricAdapter(summary.labels(userName)));
+                createUserStat = userName -> new UserStats(userName,
+                        new SummaryMetricAdapter(summary.labels(userName)),
+                        new SummaryMetricAdapter(userReplication.labels(userName)));
                 userFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
@@ -195,7 +210,9 @@ public class FsImageReporter {
                         .labelNames(FsImageCollector.LABEL_USER_NAME)
                         .buckets(configuredBuckets)
                         .help("Per user file size distribution").create();
-                createUserStat = userName -> new UserStats(userName, new HistogramMetricAdapter(histogram.labels(userName)));
+                createUserStat = userName -> new UserStats(userName,
+                        new HistogramMetricAdapter(histogram.labels(userName)),
+                        new SummaryMetricAdapter(userReplication.labels(userName)));
                 userFileSizeDistribution = histogram;
             }
 
@@ -239,7 +256,9 @@ public class FsImageReporter {
         public void unregister() {
             CollectorRegistry.defaultRegistry.unregister(groupFileSizeDistribution);
             CollectorRegistry.defaultRegistry.unregister(userFileSizeDistribution);
+            CollectorRegistry.defaultRegistry.unregister(userReplication);
             CollectorRegistry.defaultRegistry.unregister(overallFleSizeDistribution);
+            CollectorRegistry.defaultRegistry.unregister(overallReplication);
             if (hasPathStats()) {
                 CollectorRegistry.defaultRegistry.unregister(pathFileSizeDistribution);
             }
@@ -249,9 +268,11 @@ public class FsImageReporter {
         }
 
         public void register() {
+            overallFleSizeDistribution.register();
+            overallReplication.register();
             groupFileSizeDistribution.register();
             userFileSizeDistribution.register();
-            overallFleSizeDistribution.register();
+            userReplication.register();
             if (hasPathStats()) {
                 pathFileSizeDistribution.register();
             }
@@ -290,6 +311,7 @@ public class FsImageReporter {
                 synchronized (overallStats) {
                     overallStats.sumBlocks += fileBlocks;
                     overallStats.fileSize.observe(fileSize);
+                    overallStats.replication.observe(f.getReplication());
                 }
 
                 // Group stats
@@ -306,6 +328,7 @@ public class FsImageReporter {
                 synchronized (userStat) {
                     userStat.sumBlocks += fileBlocks;
                     userStat.fileSize.observe(fileSize);
+                    userStat.replication.observe(f.getReplication());
                 }
             }
 

@@ -110,6 +110,8 @@ public class WebServerIT {
         assertTrue(body.contains("fsimage_fsize_sum 3.56409344E8"));
         assertTrue(body.contains("fsimage_blocks 17.0"));
         assertTrue(body.contains("fsimage_links 0.0"));
+        assertTrue(body.contains("fsimage_replication_count 16.0"));
+        assertTrue(body.contains("fsimage_replication_sum 22.0"));
 
         // Group
         assertTrue(body.contains("fsimage_group_links{group_name=\"root\",} 0.0"));
@@ -235,7 +237,15 @@ public class WebServerIT {
         assertTrue(body.contains("fsimage_path_set_links{path_set=\"datalakeAsset1and2\",} 0.0"));
         assertTrue(body.contains("fsimage_path_set_fsize_count{path_set=\"datalakeAsset1and2\",} 2.0"));
         assertTrue(body.contains("fsimage_path_set_fsize_sum{path_set=\"datalakeAsset1and2\",} 2098176.0"));
-        
+
+        // Replication
+        assertTrue(body.contains("fsimage_user_replication_count{user_name=\"root\",} 1.0"));
+        assertTrue(body.contains("fsimage_user_replication_sum{user_name=\"root\",} 1.0"));
+        assertTrue(body.contains("fsimage_user_replication_count{user_name=\"foo\",} 1.0"));
+        assertTrue(body.contains("fsimage_user_replication_sum{user_name=\"foo\",} 1.0"));
+        assertTrue(body.contains("fsimage_user_replication_count{user_name=\"mm\",} 14.0"));
+        assertTrue(body.contains("fsimage_user_replication_sum{user_name=\"mm\",} 20.0"));
+
 
         // Test welcome page
         response = getResponse(exporterBaseUrl);
