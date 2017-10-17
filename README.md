@@ -29,16 +29,27 @@ This avoids blocking and long running Prometheus scrapes.
 For building:
 * JDK 8
 * [Maven 3.5.x](http://maven.apache.org)
+* Docker 1.6+ (only required if building docker image)
 
 For running:
 * JRE 8 for running
 * Access to Hadoop FSImage file
+* Docker 1.6+ (only required if building docker image)
 
 ## Building
 
 ```mvn clean install```
 
 You can test the exporter using [run_example.sh](run_example.sh) after building.
+
+For building including docker image, run:
+
+```mvn clean install -Pdocker```
+
+You can run the docker image via maven, too:
+```mvn clean install docker:run -Pdocker```
+
+The docker image will mount src/test/resources (with test fsimage) and expose the exporter on 0.0.0.0:7772 .
 
 ## Installation and configuration
 

@@ -1,0 +1,35 @@
+# Path where HDFS NameNode stores the fsimage files
+# See https://hadoop.apache.org/docs/r2.7.3/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml#dfs.namenode.name.dir
+fsImagePath : '/fsimage-location'
+# Skip previously parsed fsimage files, as nothing changed since last invocation
+skipPreviouslyParsed : true
+# Skip file size distribution for group based stats
+skipFileDistributionForGroupStats : true
+# Skip file size distribution for user based stats
+# Good for figuring out who has too many small files.
+skipFileDistributionForUserStats : false
+
+# Compute per path stats
+# Supports regex matching for direct child directories
+#paths:
+#  - '/tmp'
+#  - '/datalake/a.*'
+#  - '/user/m.*'
+# Skip file size distribution for path based stats
+skipFileDistributionForPathStats : true
+
+# Path sets are grouped paths by an identifier
+#pathSets:
+#  'userMmAndFooAndAsset1' : [
+#    '/datalake/asset3',
+#    '/user/mm',
+#    '/user/foo'
+#    ]
+#  'datalakeAsset1and2' : [
+#    '/datalake/asset1',
+#    '/datalake/asset2'
+#    ]
+# Skip file size distribution for path sets based stats
+skipFileDistributionForPathSetStats : true
+# Configure file size distribution buckets, supporting IEC units of KiB, MiB, GiB, TiB, PiB
+fileSizeDistributionBuckets: ['0','1MiB', '32MiB', '64MiB', '128MiB', '1GiB', '10GiB']
