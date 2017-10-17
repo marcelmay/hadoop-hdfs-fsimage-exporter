@@ -122,7 +122,7 @@ You can test the exporter using [run_example.sh](run_example.sh) after building.
 
 ## Roadmap
 
-Release 1.1+ (see [issues](issues)):
+Release 1.1+ (see [issues](../../issues)):
 * Docker image
 * Example Grafana dashboard?
 
