@@ -1,7 +1,7 @@
 Prometheus Hadoop HDFS FSImage Exporter
 =======
 
-[![Maven Central](https://img.shields.io/maven-central/v/de.m3y.prometheus.exporter.fsimage/fsimage-exporter.svg?style=flat-square)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.m3y.prometheus.exporter.fsimage%22%20AND%20a%3A%22fsimage-exporter%22)
+[![Maven Central](https://img.shields.io/maven-central/v/de.m3y.prometheus.exporter.fsimage/fsimage-exporter.svg?style=flat-square)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.m3y.prometheus.exporter.fsimage%22%20AND%20a%3A%22fsimage-exporter%22) | [Docker Hub](https://hub.docker.com/r/marcelmay/hadoop-hdfs-fsimage-exporter/)
 
 Exports Hadoop HDFS statistics to [Prometheus monitoring](https://prometheus.io/) including
 * total / per user / per group / per configured directory path / per set of paths 
@@ -36,6 +36,10 @@ For running:
 * Access to Hadoop FSImage file
 * Docker 1.6+ (only required if building docker image)
 
+## Downloading
+
+Available on [![Maven Central](https://img.shields.io/maven-central/v/de.m3y.prometheus.exporter.fsimage/fsimage-exporter.svg?style=flat-square)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.m3y.prometheus.exporter.fsimage%22%20AND%20a%3A%22fsimage-exporter%22) and as docker image on [Docker Hub](https://hub.docker.com/r/marcelmay/hadoop-hdfs-fsimage-exporter/).
+
 ## Building
 
 ```mvn clean install```
@@ -47,9 +51,14 @@ For building including docker image, run:
 ```mvn clean install -Pdocker```
 
 You can run the docker image via maven, too:
+
 ```mvn clean install docker:run -Pdocker```
 
-The docker image will mount src/test/resources (with test fsimage) and expose the exporter on 0.0.0.0:7772 .
+Or directly using docker command line
+
+```docker run -i -t -p 7772:7772 -v $PWD/src/test/resources:/fsimage-location -e "JAVA_OPTS=-server -XX:+UseG1GC -Xmx1024m" marcelmay/hadoop-hdfs-fsimage-exporter```
+
+When running the docker image via Maven, docker will mount the projects src/test/resources directory (with test fsimage) and expose the exporter on http://0.0.0.0:7772/ .
 
 ## Installation and configuration
 
@@ -132,10 +141,10 @@ The docker image will mount src/test/resources (with test fsimage) and expose th
   For Grafana, you want to sample more often with a scrape interval of minutes.
   The exporter caches previously parsed FSImage, so it is a fast operation.
 
+
 ## Roadmap
 
-Release 1.1+ (see [issues](../../issues)):
-* Docker image
+Release 1.2+ (see [issues](../../issues)):
 * Example Grafana dashboard?
 
 ## Example output
