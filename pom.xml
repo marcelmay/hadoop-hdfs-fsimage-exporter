@@ -381,7 +381,7 @@
                                             <shmsize>2147483648</shmsize>
                                         </buildOptions>
                                         <env>
-                                            <JAVA_OPTS>-dsa -da -XX:+UseG1GC -Xmx1024m</JAVA_OPTS>
+                                            <JAVA_OPTS>-server -dsa -da -XX:+UseG1GC -Xmx1024m</JAVA_OPTS>
                                         </env>
                                         <entryPoint>
                                             <!-- exec form for ENTRYPOINT -->
