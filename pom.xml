@@ -429,6 +429,7 @@
                         <executions>
                             <execution>
                                 <id>docker-package</id>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
