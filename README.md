@@ -144,7 +144,7 @@ When running the docker image via Maven, docker will mount the projects src/test
 
 ## Roadmap
 
-Release 1.2+ (see [issues](../../issues)):
+Release 1.3+ (see [issues](../../issues)):
 * Example Grafana dashboard?
 
 ## Example output
@@ -374,7 +374,7 @@ fsimage_path_links{path="/datalake/asset1",} 0.0
 This Hadoop HDFS FSImage Exporter is released under the [Apache 2.0 license](LICENSE).
 
 ```
-Copyright 2017 Marcel May  
+Copyright 2018 Marcel May
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
