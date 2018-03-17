@@ -1,28 +1,43 @@
 package de.m3y.prometheus.exporter.fsimage;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
+import com.sun.net.httpserver.HttpExchange;
 
 /**
  * Displays a welcome page containing build info and link to metrics.
  */
-public class HomePageServlet extends HttpServlet {
+public class ConfigHttpHandler implements com.sun.net.httpserver.HttpHandler {
 
     private final Config config;
     private final BuildInfoExporter buildInfoExporter;
 
-    public HomePageServlet(Config config, BuildInfoExporter buildInfoExporter) {
+    public ConfigHttpHandler(Config config, BuildInfoExporter buildInfoExporter) {
         this.config = config;
         this.buildInfoExporter = buildInfoExporter;
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void handle(HttpExchange httpExchange) throws IOException {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        byte[] bytes = buildContent().getBytes(StandardCharsets.UTF_8);
+        os.write(bytes, 0, bytes.length);
+
+        final int contentSize = os.size();
+        httpExchange.getResponseHeaders().set("Content-Type", "text/plain");
+        httpExchange.getResponseHeaders().set("Content-Length", String.valueOf(contentSize));
+        httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, contentSize);
+        os.writeTo(httpExchange.getResponseBody());
+        httpExchange.close();
+    }
+
+    private String buildContent() {
         StringBuilder buf = new StringBuilder().append("<html>\n"
                 + "<head><title>Hadoop HDFS FSImage Exporter</title></head>\n"
                 + "<body>\n"
@@ -62,8 +77,7 @@ public class HomePageServlet extends HttpServlet {
         buf.append(
                 "</ul></body>\n"
                         + "</html>");
-        resp.setContentType("text/html");
-        resp.getWriter().print(buf);
+        return buf.toString();
     }
 
     private void appendAsListItems(StringBuilder buf, Collection<String> items) {

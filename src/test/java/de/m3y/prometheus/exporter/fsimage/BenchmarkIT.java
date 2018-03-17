@@ -9,7 +9,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.eclipse.jetty.server.Server;
 import org.junit.Test;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
@@ -27,7 +26,7 @@ public class BenchmarkIT {
 
     @State(Scope.Benchmark)
     public static class BenchmarkState {
-        Server server;
+        WebServer server;
         OkHttpClient client;
         Request request;
 
@@ -39,7 +38,7 @@ public class BenchmarkIT {
                     Thread.currentThread().getContextClassLoader().getResourceAsStream("config-it.yml"))) {
                 config = new Yaml().loadAs(reader, Config.class);
             }
-            server = new WebServer().configure(config, "localhost", 7772).start();
+            server = new WebServer().configure(config, "localhost", 7772);
 
             // Prepare request fetching
             client = new OkHttpClient();

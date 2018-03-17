@@ -7,7 +7,6 @@ import java.io.Reader;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.eclipse.jetty.server.Server;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +51,7 @@ import static org.junit.Assert.assertThat;
  * drwxr-xr-x   - mm   supergroup          0 2017-06-17 23:04 /user/mm
  */
 public class WebServerIT {
-    private Server server;
+    private  WebServer server;
     private String exporterBaseUrl;
     private OkHttpClient client;
 
@@ -64,7 +63,7 @@ public class WebServerIT {
             config = new Yaml().loadAs(reader, Config.class);
         }
 
-        server = new WebServer().configure(config, "localhost", 7772).start();
+        server = new WebServer().configure(config, "localhost", 7772);
         exporterBaseUrl = "http://localhost:7772";
         client = new OkHttpClient();
     }
