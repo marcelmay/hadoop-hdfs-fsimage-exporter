@@ -30,7 +30,7 @@ public class ConfigHttpHandler implements com.sun.net.httpserver.HttpHandler {
         os.write(bytes, 0, bytes.length);
 
         final int contentSize = os.size();
-        httpExchange.getResponseHeaders().set("Content-Type", "text/plain");
+        httpExchange.getResponseHeaders().set("Content-Type", "text/html");
         httpExchange.getResponseHeaders().set("Content-Length", String.valueOf(contentSize));
         httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, contentSize);
         os.writeTo(httpExchange.getResponseBody());
