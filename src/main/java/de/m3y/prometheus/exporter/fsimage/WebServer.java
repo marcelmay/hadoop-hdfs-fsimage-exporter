@@ -11,11 +11,24 @@ import org.yaml.snakeyaml.Yaml;
 
 public class WebServer {
 
-    private HTTPServer server;
+    static class HTTPServerWithCustomHandler extends HTTPServer {
+
+        HTTPServerWithCustomHandler(InetSocketAddress addr) throws IOException {
+            super(addr, CollectorRegistry.defaultRegistry, true);
+        }
+
+        void replaceRootHandler(ConfigHttpHandler configHttpHandler) {
+            server.removeContext("/");
+            server.createContext("/", configHttpHandler);
+        }
+    }
+
+    private HTTPServerWithCustomHandler httpServer;
+    private FsImageCollector fsImageCollector;
 
     WebServer configure(Config config, String address, int port) throws IOException {
         // Metrics
-        final FsImageCollector fsImageCollector = new FsImageCollector(config);
+        fsImageCollector = new FsImageCollector(config);
         fsImageCollector.register();
 
         new MemoryPoolsExports().register();
@@ -23,27 +36,16 @@ public class WebServer {
         final BuildInfoExporter buildInfo = new BuildInfoExporter("fsimage_exporter_",
                 "fsimage_exporter").register();
 
-        // Jetty
         InetSocketAddress inetAddress = new InetSocketAddress(address, port);
-        server = new HTTPServer(address, port, true){
-            @Override
-            protected void configureContextHandlers(CollectorRegistry registry) {
-                this.server.createContext("/", new ConfigHttpHandler(config, buildInfo));
-                this.server.createContext("/metrics",  createMetricsHandler(registry));
-            }
-
-            @Override
-            public void stop() {
-                super.stop();
-                fsImageCollector.shutdown();
-            }
-        };
+        httpServer = new HTTPServerWithCustomHandler(inetAddress);
+        httpServer.replaceRootHandler(new ConfigHttpHandler(config, buildInfo));
 
         return this;
     }
 
     public void stop() {
-        server.stop();
+        httpServer.stop();
+        fsImageCollector.shutdown();
     }
 
     public static void main(String[] args) throws Exception {
