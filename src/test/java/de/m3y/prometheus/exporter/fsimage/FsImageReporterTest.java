@@ -20,7 +20,6 @@ public class FsImageReporterTest {
         final FSImageLoader loader = FSImageLoader.load(file);
         final Set<String> paths = FsImageReporter.expandPaths(loader,
                 new HashSet<>(Arrays.asList("/tmp" /* Non existent */, "/user/m.*", "/datalake/a.*")));
-        System.out.println(paths);
         assertThat(paths, containsInAnyOrder("/datalake/asset3", "/datalake/asset1", "/datalake/asset2", "/user/mm"));
     }
 }
