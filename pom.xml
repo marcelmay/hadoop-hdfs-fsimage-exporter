@@ -355,7 +355,7 @@
                                 <image>
                                     <name>marcelmay/hadoop-hdfs-fsimage-exporter</name>
                                     <build>
-                                        <from>openjdk:8u171-jdk-alpine3.8</from>
+                                        <from>openjdk:8u181-jdk-alpine3.8</from>
                                         <maintainer>https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter
                                         </maintainer>
                                         <tags>
