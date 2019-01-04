@@ -10,8 +10,7 @@ import java.util.Map;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConfigTest {
     @Test
@@ -22,34 +21,35 @@ public class ConfigTest {
             config = new Yaml().loadAs(reader, Config.class);
         }
 
-        assertEquals("src/test/resources", config.getFsImagePath());
-        assertTrue(config.isSkipPreviouslyParsed());
-        assertTrue(!config.isSkipFileDistributionForGroupStats());
-        assertTrue(!config.isSkipFileDistributionForUserStats());
+        assertThat(config.getFsImagePath()).isEqualTo("src/test/resources");
+
+        assertThat(config.isSkipPreviouslyParsed()).isTrue();
+        assertThat(config.isSkipFileDistributionForGroupStats()).isFalse();
+        assertThat(config.isSkipFileDistributionForUserStats()).isFalse();
 
         // Paths
-        assertTrue(config.hasPaths());
-        assertThat(config.getPaths(),
-                containsInAnyOrder("/tmp", "/datalake/a.*", "/user/m.*"));
-        assertTrue(config.isSkipFileDistributionForPathStats());
+        assertThat(config.hasPaths()).isTrue();
+        assertThat(config.getPaths()).containsExactlyInAnyOrder("/tmp", "/datalake/a.*", "/user/m.*");
+
+        assertThat(config.isSkipFileDistributionForPathStats()).isTrue();
 
         // PathSets
-        assertTrue(config.hasPathSets());
+        assertThat(config.hasPathSets()).isTrue();
         final Map<String, List<String>> pathSets = config.getPathSets();
-        assertEquals(2, pathSets.size());
-        assertThat(pathSets.get("userMmAndFooAndAsset1"),
-                containsInAnyOrder("/datalake/asset3", "/user/mm", "/user/foo"));
-        assertThat(pathSets.get("datalakeAsset1and2"),
-                containsInAnyOrder("/datalake/asset2", "/datalake/asset1"));
-        assertTrue(config.isSkipFileDistributionForPathSetStats());
+        assertThat(pathSets.size()).isEqualTo(2);
+        assertThat(pathSets.get("userMmAndFooAndAsset1")).
+                containsExactlyInAnyOrder("/datalake/asset3", "/user/mm", "/user/foo");
+        assertThat(pathSets.get("datalakeAsset1and2"))
+                .containsExactlyInAnyOrder("/datalake/asset2", "/datalake/asset1");
+        assertThat(config.isSkipFileDistributionForPathSetStats()).isTrue();
 
         // File size distribution
         final List<String> buckets = config.getFileSizeDistributionBuckets();
-        assertEquals(buckets, Arrays.asList("0", "42", "1MiB", "32MiB", "64MiB", "128MiB", "1GiB", "12GiB"));
-        assertArrayEquals(config.getFileSizeDistributionBucketsAsDoubles(), new double[]{
+        assertThat(buckets).isEqualTo(Arrays.asList("0", "42", "1MiB", "32MiB", "64MiB", "128MiB", "1GiB", "12GiB"));
+        assertThat(config.getFileSizeDistributionBucketsAsDoubles()).isEqualTo(new double[]{
                 0, 42, 1024 * 1024, 32 * 1024 * 1024, 64 * 1024 * 1024, 128 * 1024 * 1024,
                 1024L * 1024L * 1024L, 12L * 1024L * 1024L * 1024L
-        }, 1e-2);
+        });
     }
 
 
@@ -57,10 +57,9 @@ public class ConfigTest {
     public void testConfigDefaults() {
         final Config config = new Config();
 
-        assertArrayEquals(config.getFileSizeDistributionBucketsAsDoubles(), new double[]{
+        assertThat(config.getFileSizeDistributionBucketsAsDoubles()).isEqualTo(new double[]{
                 0, 1024 * 1024, 32 * 1024 * 1024, 64 * 1024 * 1024, 128 * 1024 * 1024,
                 1024L * 1024L * 1024L, 10L * 1024L * 1024L * 1024L
-        }, 1e-2);
-
+        });
     }
 }

@@ -9,8 +9,7 @@ import java.util.Set;
 import de.m3y.hadoop.hdfs.hfsa.core.FSImageLoader;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FsImageReporterTest {
 
@@ -20,6 +19,6 @@ public class FsImageReporterTest {
         final FSImageLoader loader = FSImageLoader.load(file);
         final Set<String> paths = FsImageReporter.expandPaths(loader,
                 new HashSet<>(Arrays.asList("/tmp" /* Non existent */, "/user/m.*", "/datalake/a.*")));
-        assertThat(paths, containsInAnyOrder("/datalake/asset3", "/datalake/asset1", "/datalake/asset2", "/user/mm"));
+        assertThat(paths).contains("/datalake/asset3", "/datalake/asset1", "/datalake/asset2", "/user/mm");
     }
 }
