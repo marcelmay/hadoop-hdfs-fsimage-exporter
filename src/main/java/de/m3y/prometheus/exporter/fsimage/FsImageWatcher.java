@@ -36,7 +36,7 @@ public class FsImageWatcher implements Runnable {
     private final File fsImageDir;
     private final Config config;
     private File lastFsImageFileLoaded;
-    private volatile FsImageReporter.Report report;
+    private FsImageReporter.Report report;
     private final Object lock = new Object();
 
 
