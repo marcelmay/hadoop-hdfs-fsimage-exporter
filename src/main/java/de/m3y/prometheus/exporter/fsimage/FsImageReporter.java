@@ -3,6 +3,8 @@ package de.m3y.prometheus.exporter.fsimage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -76,9 +78,9 @@ public class FsImageReporter {
     }
 
     abstract static class AbstractFileSystemStats {
-        long sumDirectories;
-        long sumBlocks;
-        long sumSymLinks;
+        LongAdder sumDirectories = new LongAdder();
+        LongAdder sumBlocks = new LongAdder();
+        LongAdder sumSymLinks = new LongAdder();
         final MetricAdapter fileSize;
 
         protected AbstractFileSystemStats(MetricAdapter fileSize) {
@@ -153,10 +155,10 @@ public class FsImageReporter {
         final Function<String, PathStats> createPathSetStat;
 
         Report(Config config) {
-            groupStats = Collections.synchronizedMap(new HashMap<>());
-            userStats = Collections.synchronizedMap(new HashMap<>());
-            pathStats = Collections.synchronizedMap(new HashMap<>());
-            pathSetStats = Collections.synchronizedMap(new HashMap<>());
+            groupStats = new ConcurrentHashMap<>();
+            userStats = new ConcurrentHashMap<>();
+            pathStats = new ConcurrentHashMap<>();
+            pathSetStats = new ConcurrentHashMap<>();
 
             double[] configuredBuckets = config.getFileSizeDistributionBucketsAsDoubles();
 
@@ -308,28 +310,22 @@ public class FsImageReporter {
 
                 final long fileSize = FSImageLoader.getFileSize(f);
                 final long fileBlocks = f.getBlocksCount();
-                synchronized (overallStats) {
-                    overallStats.sumBlocks += fileBlocks;
-                    overallStats.fileSize.observe(fileSize);
-                    overallStats.replication.observe(f.getReplication());
-                }
+                overallStats.sumBlocks.add(fileBlocks);
+                overallStats.fileSize.observe(fileSize);
+                overallStats.replication.observe(f.getReplication());
 
                 // Group stats
                 final String groupName = p.getGroupName();
                 final GroupStats groupStat = report.groupStats.computeIfAbsent(groupName, report.createGroupStats);
-                synchronized (groupStat) {
-                    groupStat.sumBlocks += fileBlocks;
-                    groupStat.fileSize.observe(fileSize);
-                }
+                groupStat.sumBlocks.add(fileBlocks);
+                groupStat.fileSize.observe(fileSize);
 
                 // User stats
                 final String userName = p.getUserName();
                 UserStats userStat = report.userStats.computeIfAbsent(userName, report.createUserStat);
-                synchronized (userStat) {
-                    userStat.sumBlocks += fileBlocks;
-                    userStat.fileSize.observe(fileSize);
-                    userStat.replication.observe(f.getReplication());
-                }
+                userStat.sumBlocks.add(fileBlocks);
+                userStat.fileSize.observe(fileSize);
+                userStat.replication.observe(f.getReplication());
             }
 
             @Override
@@ -344,20 +340,14 @@ public class FsImageReporter {
                 // Group stats
                 final String groupName = p.getGroupName();
                 final GroupStats groupStat = report.groupStats.computeIfAbsent(groupName, report.createGroupStats);
-                synchronized (groupStat) {
-                    groupStat.sumDirectories++;
-                }
+                groupStat.sumDirectories.increment();
 
                 // User stats
                 final String userName = p.getUserName();
                 final UserStats userStat = report.userStats.computeIfAbsent(userName, report.createUserStat);
-                synchronized (userStat) {
-                    userStat.sumDirectories++;
-                }
+                userStat.sumDirectories.increment();
 
-                synchronized (overallStats) {
-                    overallStats.sumDirectories++;
-                }
+                overallStats.sumDirectories.increment();
             }
 
             @Override
@@ -368,20 +358,14 @@ public class FsImageReporter {
                 // Group stats
                 final String groupName = p.getGroupName();
                 final GroupStats groupStat = report.groupStats.computeIfAbsent(groupName, report.createGroupStats);
-                synchronized (groupStat) {
-                    groupStat.sumSymLinks++;
-                }
+                groupStat.sumSymLinks.increment();
 
                 // User stats
                 final String userName = p.getUserName();
                 final UserStats userStat = report.userStats.computeIfAbsent(userName, report.createUserStat);
-                synchronized (userStat) {
-                    userStat.sumSymLinks++;
-                }
+                userStat.sumSymLinks.increment();
 
-                synchronized (overallStats) {
-                    overallStats.sumSymLinks++;
-                }
+                overallStats.sumSymLinks.increment();
             }
         });
         LOG.info("Finished computing overall/group/user stats in {}ms", System.currentTimeMillis() - t);
@@ -405,7 +389,7 @@ public class FsImageReporter {
                 final PathStats pathStats = report.pathStats.computeIfAbsent(p, report.createPathStat);
                 loader.visit(new PathStatVisitor(pathStats), p);
                 // Subtract start dir, as only child dirs count
-                pathStats.sumDirectories -= 1;
+                pathStats.sumDirectories.decrement();
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Finished path stat for {} with {} total number of files in {}ms",
                             p, pathStats.fileSize.count(), System.currentTimeMillis() - t);
@@ -437,7 +421,7 @@ public class FsImageReporter {
                 loader.visit(visitor, path);
             }
             // Subtract number of start dirs, as only child dirs count
-            pathStats.sumDirectories -= expandedPaths.size();
+            pathStats.sumDirectories.add(-expandedPaths.size());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Finished path set stat for {} with {} total number of files in {}ms",
                         entry.getKey(), pathStats.fileSize.count(), System.currentTimeMillis() - t);
@@ -505,19 +489,19 @@ public class FsImageReporter {
         @Override
         public void onFile(FsImageProto.INodeSection.INode inode, String path) {
             FsImageProto.INodeSection.INodeFile f = inode.getFile();
-            pathStats.sumBlocks += f.getBlocksCount();
+            pathStats.sumBlocks.add(f.getBlocksCount());
             final long fileSize = FSImageLoader.getFileSize(f);
             pathStats.fileSize.observe(fileSize);
         }
 
         @Override
         public void onDirectory(FsImageProto.INodeSection.INode inode, String path) {
-            pathStats.sumDirectories++;
+            pathStats.sumDirectories.increment();
         }
 
         @Override
         public void onSymLink(FsImageProto.INodeSection.INode inode, String path) {
-            pathStats.sumSymLinks++;
+            pathStats.sumSymLinks.increment();
         }
     }
 

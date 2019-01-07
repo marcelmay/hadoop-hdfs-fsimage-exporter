@@ -153,41 +153,41 @@ public class FsImageCollector extends Collector {
     private void setMetricsFromReport() {
         // Overall stats
         FsImageReporter.OverallStats overallStats = currentReport.overallStats;
-        METRIC_SUM_DIRS.set(overallStats.sumDirectories);
-        METRIC_SUM_LINKS.set(overallStats.sumSymLinks);
-        METRIC_SUM_BLOCKS.set(overallStats.sumBlocks);
+        METRIC_SUM_DIRS.set(overallStats.sumDirectories.longValue());
+        METRIC_SUM_LINKS.set(overallStats.sumSymLinks.longValue());
+        METRIC_SUM_BLOCKS.set(overallStats.sumBlocks.longValue());
 
         // User stats
         for (FsImageReporter.UserStats userStat : currentReport.userStats.values()) {
             String[] labelValues = new String[]{userStat.userName};
-            METRIC_USER_SUM_DIRS.labels(labelValues).set(userStat.sumDirectories);
-            METRIC_USER_SUM_LINKS.labels(labelValues).set(userStat.sumSymLinks);
-            METRIC_USER_SUM_BLOCKS.labels(labelValues).set(userStat.sumBlocks);
+            METRIC_USER_SUM_DIRS.labels(labelValues).set(userStat.sumDirectories.longValue());
+            METRIC_USER_SUM_LINKS.labels(labelValues).set(userStat.sumSymLinks.longValue());
+            METRIC_USER_SUM_BLOCKS.labels(labelValues).set(userStat.sumBlocks.longValue());
         }
 
         // Group stats
         for (FsImageReporter.GroupStats groupStat : currentReport.groupStats.values()) {
             String[] labelValues = new String[]{groupStat.groupName};
-            METRIC_GROUP_SUM_DIRS.labels(labelValues).set(groupStat.sumDirectories);
-            METRIC_GROUP_SUM_LINKS.labels(labelValues).set(groupStat.sumSymLinks);
-            METRIC_GROUP_SUM_BLOCKS.labels(labelValues).set(groupStat.sumBlocks);
+            METRIC_GROUP_SUM_DIRS.labels(labelValues).set(groupStat.sumDirectories.longValue());
+            METRIC_GROUP_SUM_LINKS.labels(labelValues).set(groupStat.sumSymLinks.longValue());
+            METRIC_GROUP_SUM_BLOCKS.labels(labelValues).set(groupStat.sumBlocks.longValue());
         }
 
         // Path stats
         if (currentReport.hasPathStats()) {
             for (FsImageReporter.PathStats pathStat : currentReport.pathStats.values()) {
-                METRIC_PATH_SUM_DIRS.labels(pathStat.path).set(pathStat.sumDirectories);
-                METRIC_PATH_SUM_LINKS.labels(pathStat.path).set(pathStat.sumSymLinks);
-                METRIC_PATH_SUM_BLOCKS.labels(pathStat.path).set(pathStat.sumBlocks);
+                METRIC_PATH_SUM_DIRS.labels(pathStat.path).set(pathStat.sumDirectories.longValue());
+                METRIC_PATH_SUM_LINKS.labels(pathStat.path).set(pathStat.sumSymLinks.longValue());
+                METRIC_PATH_SUM_BLOCKS.labels(pathStat.path).set(pathStat.sumBlocks.longValue());
             }
         }
 
         // Path set stats
         if (currentReport.hasPathSetStats()) {
             for (FsImageReporter.PathStats pathStat : currentReport.pathSetStats.values()) {
-                METRIC_PATH_SET_SUM_DIRS.labels(pathStat.path).set(pathStat.sumDirectories);
-                METRIC_PATH_SET_SUM_LINKS.labels(pathStat.path).set(pathStat.sumSymLinks);
-                METRIC_PATH_SET_SUM_BLOCKS.labels(pathStat.path).set(pathStat.sumBlocks);
+                METRIC_PATH_SET_SUM_DIRS.labels(pathStat.path).set(pathStat.sumDirectories.longValue());
+                METRIC_PATH_SET_SUM_LINKS.labels(pathStat.path).set(pathStat.sumSymLinks.longValue());
+                METRIC_PATH_SET_SUM_BLOCKS.labels(pathStat.path).set(pathStat.sumBlocks.longValue());
             }
         }
 
