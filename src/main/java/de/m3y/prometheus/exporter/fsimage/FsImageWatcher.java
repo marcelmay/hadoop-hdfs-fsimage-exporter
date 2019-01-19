@@ -133,6 +133,6 @@ public class FsImageWatcher implements Runnable {
 
         Arrays.sort(files, FSIMAGE_FILENAME_COMPARATOR);
 
-        return files[0];  // Youngest fsimage
+        return files[0];  // Youngest fsimage with highest increment counter
     }
 }
