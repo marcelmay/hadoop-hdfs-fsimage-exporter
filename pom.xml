@@ -109,6 +109,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>de.m3y.prometheus.assertj</groupId>
+            <artifactId>assertj-prometheus</artifactId>
+            <version>0.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
             <version>3.14.2</version>

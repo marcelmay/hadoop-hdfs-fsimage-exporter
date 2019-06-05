@@ -11,20 +11,28 @@ import io.prometheus.client.GaugeMetricFamily;
  * Exports build info such as version, build time etc.
  */
 public class BuildInfoExporter extends Collector {
-    private static final List<String> LABEL_NAMES =
-        Arrays.asList("appName", "appVersion", "buildTime", "buildScmVersion", "buildScmBranch");
-
     private final String appName;
-    private final String metricName;
+    private final GaugeMetricFamily metricFamily;
 
     /**
      * @param metricPrefix the metric name prefix
-     * @param appName the application name to report this metric for.
+     * @param appName      the application name to report this metric for.
      */
     public BuildInfoExporter(String metricPrefix, String appName) {
         super();
         this.appName = appName;
-        metricName = metricPrefix + "app_info";
+
+        metricFamily = new GaugeMetricFamily(metricPrefix + "app_info",
+                "Application build info",
+                Arrays.asList("appName", "appVersion", "buildTime", "buildScmVersion", "buildScmBranch"));
+        metricFamily.addMetric(
+                Arrays.asList(
+                        getAppName(),
+                        getAppVersion(),
+                        getBuildTimeStamp(),
+                        getBuildScmVersion(),
+                        getBuildScmBranch()
+                ), 1.0D);
     }
 
     public String getAppName() {
@@ -49,15 +57,6 @@ public class BuildInfoExporter extends Collector {
 
     @Override
     public List<MetricFamilySamples> collect() {
-        GaugeMetricFamily metricFamily = new GaugeMetricFamily(metricName, "Application build info",
-            LABEL_NAMES);
-        metricFamily.addMetric(Arrays.asList(
-            getAppName(),
-            getAppVersion(),
-            getBuildTimeStamp(),
-            getBuildScmVersion(),
-            getBuildScmBranch()
-        ), 1.0D);
         return Collections.singletonList(metricFamily);
     }
 }
