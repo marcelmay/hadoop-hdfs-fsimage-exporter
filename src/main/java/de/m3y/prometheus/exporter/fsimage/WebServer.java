@@ -1,6 +1,6 @@
 package de.m3y.prometheus.exporter.fsimage;
 
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -54,11 +54,9 @@ public class WebServer {
             System.exit(1);
         }
 
-        Config config;
-        try (FileReader reader = new FileReader(args[2])) {
-            config = new Yaml().loadAs(reader, Config.class);
+        try (FileInputStream reader = new FileInputStream(args[2])) {
+            Config config = new Yaml().loadAs(reader, Config.class);
+            new WebServer().configure(config, args[0], Integer.parseInt(args[1]));
         }
-
-        new WebServer().configure(config, args[0], Integer.parseInt(args[1]));
     }
 }
