@@ -51,8 +51,7 @@ public class ConfigHttpHandler implements com.sun.net.httpserver.HttpHandler {
                 + "<li>SCM version : ").append(buildInfoExporter.getBuildScmVersion()).append("</li>"
                 + "</ul>"
                 + "<h2>Configuration</h2><ul>"
-                + "<li>Path to HDFS NameNode fsImage snapshots : ").append(config.getFsImagePath()).append("</li>"
-                + "<li>Skip re-parsing previously parsed fsImage files : ").append(config.isSkipPreviouslyParsed()).append("</li>");
+                + "<li>Path to HDFS NameNode fsImage snapshots : ").append(config.getFsImagePath()).append("</li>");
         buf.append("<li>skipFileDistributionForGroupStats : ").append(config.isSkipFileDistributionForGroupStats()).append("</li>");
         buf.append("<li>skipFileDistributionForUserStats : ").append(config.isSkipFileDistributionForUserStats()).append("</li>");
         buf.append("<li>fileSizeDistributionBuckets : ").append(config.getFileSizeDistributionBuckets()).append("</li>");

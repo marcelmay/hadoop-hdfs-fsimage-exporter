@@ -80,7 +80,6 @@ public class WebServerIT {
         assertThat(body)
                 .contains("fsimage_exporter_app_info{appName=\"fsimage_exporter\",appVersion=\"")
                 .contains("fsimage_scrape_requests_total ")
-                .contains("fsimage_scrape_skips_total 0.0")
                 .contains("fsimage_compute_stats_duration_seconds_count ")
                 .contains("fsimage_compute_stats_duration_seconds_sum ")
                 .contains("fsimage_scrape_duration_seconds ")

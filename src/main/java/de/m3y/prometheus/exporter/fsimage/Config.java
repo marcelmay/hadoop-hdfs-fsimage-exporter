@@ -21,10 +21,6 @@ public class Config {
      */
     private String fsImagePath;
     /**
-     * Skip fsimage parsing if previously parsed.
-     */
-    private boolean skipPreviouslyParsed = true;
-    /**
      * A list of paths to report statistics for.
      * <p>
      * Paths can contain a regexp postfix, like "/users/ab.*", for matching direct child directories
@@ -64,14 +60,6 @@ public class Config {
 
     public void setFsImagePath(String fsImagePath) {
         this.fsImagePath = fsImagePath;
-    }
-
-    public boolean isSkipPreviouslyParsed() {
-        return skipPreviouslyParsed;
-    }
-
-    public void setSkipPreviouslyParsed(boolean skipPreviouslyParsed) {
-        this.skipPreviouslyParsed = skipPreviouslyParsed;
     }
 
     public Set<String> getPaths() {

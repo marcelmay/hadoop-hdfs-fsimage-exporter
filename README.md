@@ -71,9 +71,6 @@ When running the docker image via Maven, docker will mount the projects src/test
   # See https://hadoop.apache.org/docs/r2.7.3/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml#dfs.namenode.name.dir
   fsImagePath : 'src/test/resources'
   
-  # Skip previously parsed fsimage files, as nothing changed since last invocation
-  skipPreviouslyParsed : true
-  
   # Skip file size distribution for group based stats
   skipFileDistributionForGroupStats : true
   
@@ -359,9 +356,6 @@ fsimage_exporter_app_info{appName="fsimage_exporter",appVersion="1.1-SNAPSHOT",b
 # HELP fsimage_scrape_requests_total Exporter requests made
 # TYPE fsimage_scrape_requests_total counter
 fsimage_scrape_requests_total 2.0
-# HELP fsimage_scrape_skips_total Counts the fsimage scrape skips (no fsimage change).
-# TYPE fsimage_scrape_skips_total counter
-fsimage_scrape_skips_total 0.0
 # HELP fsimage_path_links Number of sym links.
 # TYPE fsimage_path_links gauge
 fsimage_path_links{path="/datalake/asset2",} 0.0

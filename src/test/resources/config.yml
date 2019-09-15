@@ -1,8 +1,7 @@
 # Path where HDFS NameNode stores the fsimage files
 # See https://hadoop.apache.org/docs/r2.7.3/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml#dfs.namenode.name.dir
 fsImagePath : 'src/test/resources'
-# Skip previously parsed fsimage files, as nothing changed since last invocation
-skipPreviouslyParsed : true
+
 # Skip file size distribution for group based stats
 skipFileDistributionForGroupStats : false
 # Skip file size distribution for user based stats

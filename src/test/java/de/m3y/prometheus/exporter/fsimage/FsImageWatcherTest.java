@@ -33,7 +33,6 @@ public class FsImageWatcherTest {
         }
 
         final File file_1 = createTmpFile(tempDirectory, "fsimage_0000000001650677390");
-
         assertEquals(file_1, FsImageWatcher.findLatestFSImageFile(tempDirectory));
 
         final File file_2 = createTmpFile(tempDirectory, "fsimage_0000000001650677391");

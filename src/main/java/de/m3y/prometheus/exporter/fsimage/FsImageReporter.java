@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 
 import de.m3y.hadoop.hdfs.hfsa.core.FSImageLoader;
 import de.m3y.hadoop.hdfs.hfsa.core.FsVisitor;
-import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Histogram;
 import io.prometheus.client.SimpleCollector;
 import io.prometheus.client.Summary;
@@ -19,13 +18,16 @@ import org.apache.hadoop.hdfs.server.namenode.FsImageProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.*;
+import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.METRIC_PREFIX;
+import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.MetricFamilySamples;
+import static de.m3y.prometheus.exporter.fsimage.FsImageUpdateHandler.FSIZE;
+import static de.m3y.prometheus.exporter.fsimage.FsImageUpdateHandler.REPLICATION;
 
 /**
  * Generates a report for a loaded FSImage.
  */
 public class FsImageReporter {
-    private static final Logger LOG = LoggerFactory.getLogger(FSImageLoader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FsImageReporter.class);
 
     interface MetricAdapter {
         void observe(long metricValue);
@@ -128,7 +130,7 @@ public class FsImageReporter {
     }
 
     /**
-     * Contains collected statistics.
+     * Contains collected statistics for an FSImage.
      */
     static class Report {
         // Overall stats
@@ -148,7 +150,7 @@ public class FsImageReporter {
         final Map<String, PathStats> pathStats;
         final SimpleCollector<?> pathFileSizeDistribution;
         final Function<String, PathStats> createPathStat;
-        boolean error;
+        boolean error = false;
         // Path sets
         final Map<String, PathStats> pathSetStats;
         final SimpleCollector pathSetFileSizeDistribution;
@@ -177,30 +179,32 @@ public class FsImageReporter {
             // Group
             if (config.isSkipFileDistributionForGroupStats()) {
                 Summary summary = Summary.build()
-                        .name(FsImageCollector.METRIC_PREFIX_GROUP + FSIZE)
-                        .labelNames(FsImageCollector.LABEL_GROUP_NAME)
+                        .name(FsImageUpdateHandler.METRIC_PREFIX_GROUP + FSIZE)
+                        .labelNames(FsImageUpdateHandler.LABEL_GROUP_NAME)
                         .help("Per group file size and file count").create();
-                createGroupStats = groupName -> new GroupStats(groupName, new SummaryMetricAdapter(summary.labels(groupName)));
+                createGroupStats = groupName -> new GroupStats(groupName,
+                        new SummaryMetricAdapter(summary.labels(groupName)));
                 groupFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
-                        .name(FsImageCollector.METRIC_PREFIX_GROUP + FSIZE)
-                        .labelNames(FsImageCollector.LABEL_GROUP_NAME)
+                        .name(FsImageUpdateHandler.METRIC_PREFIX_GROUP + FSIZE)
+                        .labelNames(FsImageUpdateHandler.LABEL_GROUP_NAME)
                         .buckets(configuredBuckets)
                         .help("Per group file size distribution.").create();
-                createGroupStats = groupName -> new GroupStats(groupName, new HistogramMetricAdapter(histogram.labels(groupName)));
+                createGroupStats = groupName -> new GroupStats(groupName,
+                        new HistogramMetricAdapter(histogram.labels(groupName)));
                 groupFileSizeDistribution = histogram;
             }
 
             // User
             userReplication = Summary.build()
-                    .name(FsImageCollector.METRIC_PREFIX_USER + REPLICATION)
-                    .labelNames(FsImageCollector.LABEL_USER_NAME)
+                    .name(FsImageUpdateHandler.METRIC_PREFIX_USER + REPLICATION)
+                    .labelNames(FsImageUpdateHandler.LABEL_USER_NAME)
                     .help("Per user file replication").create();
             if (config.isSkipFileDistributionForUserStats()) {
                 Summary summary = Summary.build()
-                        .name(FsImageCollector.METRIC_PREFIX_USER + FSIZE)
-                        .labelNames(FsImageCollector.LABEL_USER_NAME)
+                        .name(FsImageUpdateHandler.METRIC_PREFIX_USER + FSIZE)
+                        .labelNames(FsImageUpdateHandler.LABEL_USER_NAME)
                         .help("Per user file size and file count").create();
                 createUserStat = userName -> new UserStats(userName,
                         new SummaryMetricAdapter(summary.labels(userName)),
@@ -208,8 +212,8 @@ public class FsImageReporter {
                 userFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
-                        .name(FsImageCollector.METRIC_PREFIX_USER + FSIZE)
-                        .labelNames(FsImageCollector.LABEL_USER_NAME)
+                        .name(FsImageUpdateHandler.METRIC_PREFIX_USER + FSIZE)
+                        .labelNames(FsImageUpdateHandler.LABEL_USER_NAME)
                         .buckets(configuredBuckets)
                         .help("Per user file size distribution").create();
                 createUserStat = userName -> new UserStats(userName,
@@ -221,16 +225,16 @@ public class FsImageReporter {
             // Paths
             if (config.isSkipFileDistributionForPathStats()) {
                 Summary summary = Summary.build()
-                        .name(FsImageCollector.METRIC_PREFIX_PATH + FSIZE)
-                        .labelNames(FsImageCollector.LABEL_PATH)
+                        .name(FsImageUpdateHandler.METRIC_PREFIX_PATH + FSIZE)
+                        .labelNames(FsImageUpdateHandler.LABEL_PATH)
                         .help("Path specific file size and file count").create();
                 createPathStat = path -> new PathStats(path, new SummaryMetricAdapter(summary.labels(path)));
                 pathFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
-                        .name(FsImageCollector.METRIC_PREFIX_PATH + FSIZE)
+                        .name(FsImageUpdateHandler.METRIC_PREFIX_PATH + FSIZE)
                         .buckets(configuredBuckets)
-                        .labelNames(FsImageCollector.LABEL_PATH)
+                        .labelNames(FsImageUpdateHandler.LABEL_PATH)
                         .help("Path specific file size distribution").create();
                 createPathStat = path -> new PathStats(path, new HistogramMetricAdapter(histogram.labels(path)));
                 pathFileSizeDistribution = histogram;
@@ -239,47 +243,36 @@ public class FsImageReporter {
             // Path sets
             if (config.isSkipFileDistributionForPathSetStats()) {
                 Summary summary = Summary.build()
-                        .name(FsImageCollector.METRIC_PREFIX_PATH_SET + FSIZE)
-                        .labelNames(FsImageCollector.LABEL_PATH_SET)
+                        .name(FsImageUpdateHandler.METRIC_PREFIX_PATH_SET + FSIZE)
+                        .labelNames(FsImageUpdateHandler.LABEL_PATH_SET)
                         .help("Path set specific file size and file count").create();
                 createPathSetStat = path -> new PathStats(path, new SummaryMetricAdapter(summary.labels(path)));
                 pathSetFileSizeDistribution = summary;
             } else {
                 Histogram histogram = Histogram.build()
-                        .name(FsImageCollector.METRIC_PREFIX_PATH_SET + FSIZE)
+                        .name(FsImageUpdateHandler.METRIC_PREFIX_PATH_SET + FSIZE)
                         .buckets(configuredBuckets)
-                        .labelNames(FsImageCollector.LABEL_PATH_SET)
+                        .labelNames(FsImageUpdateHandler.LABEL_PATH_SET)
                         .help("Path set specific file size distribution").create();
                 createPathSetStat = path -> new PathStats(path, new HistogramMetricAdapter(histogram.labels(path)));
                 pathSetFileSizeDistribution = histogram;
             }
         }
 
-        public void unregister() {
-            CollectorRegistry.defaultRegistry.unregister(groupFileSizeDistribution);
-            CollectorRegistry.defaultRegistry.unregister(userFileSizeDistribution);
-            CollectorRegistry.defaultRegistry.unregister(userReplication);
-            CollectorRegistry.defaultRegistry.unregister(overallFleSizeDistribution);
-            CollectorRegistry.defaultRegistry.unregister(overallReplication);
-            if (hasPathStats()) {
-                CollectorRegistry.defaultRegistry.unregister(pathFileSizeDistribution);
-            }
-            if (hasPathSetStats()) {
-                CollectorRegistry.defaultRegistry.unregister(pathSetFileSizeDistribution);
-            }
-        }
+        public void collect(List<MetricFamilySamples> mfs) {
+            mfs.addAll(overallFleSizeDistribution.collect());
+            mfs.addAll(overallReplication.collect());
 
-        public void register() {
-            overallFleSizeDistribution.register();
-            overallReplication.register();
-            groupFileSizeDistribution.register();
-            userFileSizeDistribution.register();
-            userReplication.register();
+            mfs.addAll(groupFileSizeDistribution.collect());
+
+            mfs.addAll(userFileSizeDistribution.collect());
+            mfs.addAll(userReplication.collect());
+
             if (hasPathStats()) {
-                pathFileSizeDistribution.register();
+                mfs.addAll(pathFileSizeDistribution.collect());
             }
             if (hasPathSetStats()) {
-                pathSetFileSizeDistribution.register();
+                mfs.addAll(pathSetFileSizeDistribution.collect());
             }
         }
 
@@ -453,13 +446,18 @@ public class FsImageReporter {
             LOG.error("Skipping invalid path <{}> for per-path-stats", path);
         } else {
             String parent = (idx == 0 ? "/" : path.substring(0, idx));
-            List<String> childPaths = loader.getChildPaths(parent);
-            Pattern pattern = Pattern.compile(path);
-            childPaths.removeIf(p -> !pattern.matcher(p).matches());
-            if (childPaths.isEmpty()) {
-                LOG.warn("No matches found for {}", path);
-            } else {
-                expandedPaths.addAll(childPaths);
+            try {
+                List<String> childPaths = loader.getChildPaths(parent);
+                Pattern pattern = Pattern.compile(path);
+                childPaths.removeIf(p -> !pattern.matcher(p).matches());
+                if (childPaths.isEmpty()) {
+                    LOG.warn("No matches found for {}", path);
+                } else {
+                    expandedPaths.addAll(childPaths);
+                }
+            } catch(FileNotFoundException ex) {
+                LOG.warn("Skipping configured, non-existing path {} for metric computations." +
+                        " Check your configuration path/pathSet entries!", parent);
             }
         }
     }

@@ -23,7 +23,6 @@ public class ConfigTest {
 
         assertThat(config.getFsImagePath()).isEqualTo("src/test/resources");
 
-        assertThat(config.isSkipPreviouslyParsed()).isTrue();
         assertThat(config.isSkipFileDistributionForGroupStats()).isFalse();
         assertThat(config.isSkipFileDistributionForUserStats()).isFalse();
 
