@@ -455,7 +455,7 @@ public class FsImageReporter {
                 } else {
                     expandedPaths.addAll(childPaths);
                 }
-            } catch(FileNotFoundException ex) {
+            } catch(FileNotFoundException|NoSuchElementException ex) {
                 LOG.warn("Skipping configured, non-existing path {} for metric computations." +
                         " Check your configuration path/pathSet entries!", parent);
             }
