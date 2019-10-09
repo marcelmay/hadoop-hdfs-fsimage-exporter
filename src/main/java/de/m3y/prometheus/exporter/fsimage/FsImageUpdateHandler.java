@@ -224,10 +224,17 @@ class FsImageUpdateHandler {
      * Gets current report.
      * <p>
      * Blocks if current report is still in computation.
+     * @see #onFsImageChange(File)
      *
      * @return the current FSImage report.
      */
     FsImageReporter.Report getFsImageReport() {
+        // Use current report if exists
+        if(null!=report) {
+            return report;
+        }
+
+        // Blocks till there is a computed report
         lock.lock();
         try {
             while (null == report) {
