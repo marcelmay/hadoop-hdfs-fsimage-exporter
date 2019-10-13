@@ -56,7 +56,11 @@ You can run the docker image via maven, too:
 
 Or directly using docker command line
 
-```docker run -i -t -p 7772:7772 -v $PWD/src/test/resources:/fsimage-location -e "JAVA_OPTS=-server -XX:+UseG1GC -Xmx1024m" marcelmay/hadoop-hdfs-fsimage-exporter```
+```
+docker run -i -t -p 7772:7772 -v $PWD/src/test/resources:/fsimage-location \
+           -e "JAVA_OPTS=-server -XX:+UseG1GC -Xmx1024m" \
+           marcelmay/hadoop-hdfs-fsimage-exporter
+```
 
 When running the docker image via Maven, docker will mount the projects src/test/resources directory (with test fsimage) and expose the exporter on http://0.0.0.0:7772/ .
 
@@ -138,11 +142,6 @@ When running the docker image via Maven, docker will mount the projects src/test
   For Grafana, you want to sample more often with a scrape interval of minutes.
   The exporter caches previously parsed FSImage, so it is a fast operation.
 
-
-## Roadmap
-
-Release 1.3+ (see [issues](../../issues)):
-* Example Grafana dashboard?
 
 ## Example output
 
