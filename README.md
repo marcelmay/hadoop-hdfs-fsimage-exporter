@@ -116,7 +116,7 @@ When running the docker image via Maven, docker will mount the projects src/test
 * Run the exporter
   ```
     > java -jar target/fsimage-exporter.jar
-    Usage: WebServer <hostname> <port> <yml configuration file>
+    Usage: WebServer [-Dlog.level=[WARN|INFO|DEBUG]] <hostname> <port> <yml configuration file>
   ```
   Example JVM opts (-Xmx max heap depends on your fsimage size): 
   ```
