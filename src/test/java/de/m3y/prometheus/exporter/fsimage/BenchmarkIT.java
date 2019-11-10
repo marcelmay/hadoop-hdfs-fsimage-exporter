@@ -2,6 +2,7 @@ package de.m3y.prometheus.exporter.fsimage;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.File;
 import java.io.Reader;
 import java.util.concurrent.TimeUnit;
 
@@ -13,6 +14,7 @@ import org.junit.Test;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.profile.GCProfiler;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -69,6 +71,7 @@ public class BenchmarkIT {
 
     @Test
     public void runMicroBenchMark() throws RunnerException {
+        new File("target/jmh-report/").mkdirs();
         Options opt = new OptionsBuilder()
                 .include(getClass().getName())
                 .warmupIterations(2)
@@ -79,6 +82,8 @@ public class BenchmarkIT {
                 .jvmArgs("-server", "-XX:+UseG1GC", "-Xmx256m")
                 .shouldDoGC(true)
                 .forks(1)
+                .resultFormat(ResultFormatType.JSON)
+                .result("target/jmh-report/"+getClass().getSimpleName()+".json")
                 .build();
 
         new Runner(opt).run();
