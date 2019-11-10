@@ -229,20 +229,19 @@ class FsImageUpdateHandler {
      * @return the current FSImage report.
      */
     FsImageReporter.Report getFsImageReport() {
-        // Use current report if exists
-        if(null!=report) {
-            return report;
+        // Use current report if exists, otherwise wait
+        if(null==report) {
+            // Blocks till there is a computed report
+            lock.lock();
+            try {
+                while (null == report) {
+                    reportUpdated.awaitUninterruptibly();
+                }
+            } finally {
+                lock.unlock();
+            }
         }
 
-        // Blocks till there is a computed report
-        lock.lock();
-        try {
-            while (null == report) {
-                reportUpdated.awaitUninterruptibly();
-            }
-            return report;
-        } finally {
-            lock.unlock();
-        }
+        return report;
     }
 }
