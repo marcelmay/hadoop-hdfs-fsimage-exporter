@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.m3y.prometheus.exporter.fsimage</groupId>
@@ -50,10 +51,6 @@
         <maven.build.timestamp.format>yyyy-MM-dd/HH:mm</maven.build.timestamp.format>
         <exporter.build.timestamp>${maven.build.timestamp}</exporter.build.timestamp>
     </properties>
-
-    <prerequisites> <!-- For version:display-plugin-updates -->
-        <maven>3.5</maven>
-    </prerequisites>
 
     <dependencies>
         <!-- Own -->
@@ -234,6 +231,10 @@
                 <plugin>
                     <artifactId>maven-gpg-plugin</artifactId>
                     <version>1.6</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.0.0-M3</version>
                 </plugin>
                 <plugin> <!-- Required for SCM properties buildNumber and scmBranch -->
                     <groupId>org.codehaus.mojo</groupId>
@@ -444,6 +445,24 @@
                                 <goals>
                                     <goal>push</goal>
                                 </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>enforce-maven</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireMavenVersion>
+                                            <version>3.6</version>
+                                        </requireMavenVersion>
+                                    </rules>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
