@@ -24,7 +24,11 @@ The disadvantage is
 ![FSImage Exporter overview](fsimage_exporter.png)
 
 The exporter parses fsimages in background thread which checks every 60s for fsimage changes.
-This avoids blocking and long running Prometheus scrapes.
+This avoids blocking and long running Prometheus scrapes and potentially stale metrics.
+
+## Grafana dashboards
+
+* [Hadoop HDFS FSImage by kaszpir](https://grafana.com/grafana/dashboards/12236)
 
 ## Requirements
 For building:
@@ -33,7 +37,7 @@ For building:
 * Docker 1.6+ (only required if building docker image)
 
 For running:
-* JRE 8 for running
+* JRE 8+ for running
 * Access to Hadoop FSImage file
 * Docker 1.6+ (only required if building docker image)
 
