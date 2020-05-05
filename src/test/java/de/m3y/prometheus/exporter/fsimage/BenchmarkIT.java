@@ -83,7 +83,7 @@ public class BenchmarkIT {
                 .shouldDoGC(true)
                 .forks(1)
                 .resultFormat(ResultFormatType.JSON)
-                .result("target/jmh-report/"+getClass().getSimpleName()+".json")
+                .result("target/jmh-reports/"+getClass().getSimpleName()+".json")
                 .build();
 
         new Runner(opt).run();
