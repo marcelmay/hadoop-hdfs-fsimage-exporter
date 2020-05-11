@@ -344,6 +344,24 @@
                     <pushChanges>false</pushChanges>
                 </configuration>
             </plugin>
+           <plugin>
+               <artifactId>maven-enforcer-plugin</artifactId>
+               <executions>
+                   <execution>
+                       <id>enforce-maven</id>
+                       <goals>
+                           <goal>enforce</goal>
+                       </goals>
+                       <configuration>
+                           <rules>
+                               <requireMavenVersion>
+                                   <version>3.6</version>
+                               </requireMavenVersion>
+                           </rules>
+                       </configuration>
+                   </execution>
+               </executions>
+           </plugin>
         </plugins>
     </build>
     <profiles>
@@ -445,24 +463,6 @@
                                 <goals>
                                     <goal>push</goal>
                                 </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-enforcer-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>enforce-maven</id>
-                                <goals>
-                                    <goal>enforce</goal>
-                                </goals>
-                                <configuration>
-                                    <rules>
-                                        <requireMavenVersion>
-                                            <version>3.6</version>
-                                        </requireMavenVersion>
-                                    </rules>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
