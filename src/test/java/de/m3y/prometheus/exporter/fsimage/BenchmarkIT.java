@@ -71,7 +71,7 @@ public class BenchmarkIT {
 
     @Test
     public void runMicroBenchMark() throws RunnerException {
-        new File("target/jmh-report/").mkdirs();
+        new File("target/jmh-reports/").mkdirs();
         Options opt = new OptionsBuilder()
                 .include(getClass().getName())
                 .warmupIterations(2)
