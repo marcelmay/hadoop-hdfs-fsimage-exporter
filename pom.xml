@@ -380,7 +380,7 @@
                                 <image>
                                     <name>marcelmay/hadoop-hdfs-fsimage-exporter</name>
                                     <build>
-                                        <from>openjdk:8u212-jre-alpine3.9</from>
+                                        <from>openjdk:11-jre-slim-buster</from>
                                         <maintainer>https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter
                                         </maintainer>
                                         <tags>
