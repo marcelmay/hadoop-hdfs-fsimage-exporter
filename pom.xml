@@ -150,7 +150,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M4</version>
+                    <version>3.0.0-M5</version>
                     <configuration>
                         <includes>
                             <include>**/*Test.java</include>
@@ -162,7 +162,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.0.0-M4</version>
+                    <version>3.0.0-M5</version>
                     <executions>
                         <execution>
                             <id>failsafe-integration-tests</id>
@@ -213,7 +213,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.2.3</version>
+                    <version>3.2.4</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-release-plugin</artifactId>
