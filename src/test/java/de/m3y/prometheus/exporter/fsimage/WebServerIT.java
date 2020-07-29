@@ -60,8 +60,8 @@ public class WebServerIT {
             config = new Yaml().loadAs(reader, Config.class);
         }
 
-        server = new WebServer().configure(config, "localhost", 7772);
-        exporterBaseUrl = "http://localhost:7772";
+        server = new WebServer().configure(config, "localhost", 9709);
+        exporterBaseUrl = "http://localhost:9709";
         client = new OkHttpClient();
     }
 

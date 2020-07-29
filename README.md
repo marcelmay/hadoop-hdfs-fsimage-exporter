@@ -62,12 +62,13 @@ You can run the docker image via maven, too:
 Or directly using docker command line
 
 ```
-docker run -i -t -p 7772:7772 -v $PWD/src/test/resources:/fsimage-location \
+docker run -i -t -p 9709:9709 -v $PWD/src/test/resources:/fsimage-location \
            -e "JAVA_OPTS=-server -XX:+UseG1GC -Xmx1024m" \
            marcelmay/hadoop-hdfs-fsimage-exporter
 ```
 
-When running the docker image via Maven, docker will mount the projects src/test/resources directory (with test fsimage) and expose the exporter on http://0.0.0.0:7772/ .
+When running the docker image via Maven, docker will mount the projects src/test/resources directory (with test fsimage) and expose the exporter on http://0.0.0.0:9709/ .
+
 
 ## Installation and configuration
 
@@ -126,9 +127,11 @@ When running the docker image via Maven, docker will mount the projects src/test
   ```
   > java -Xmx1024m -dsa -server -XX:+UseG1GC \
          -jar target/fsimage-exporter-1.0-SNAPSHOT.jar \
-         0.0.0.0 9092 example.yml
+         0.0.0.0 9709 example.yml
   ```
   Note: Make sure to size the heap correctly. As an heuristic, you can use 3 * fsimage size.
+
+  Note: Previous versions up to 1.3 use the default port 7772 instead of 9709
   
 * Test the exporter  
   Open http://\<hostname>:\<port>/metrics or http://\<hostname>:\<port>/ (for configuration overview)

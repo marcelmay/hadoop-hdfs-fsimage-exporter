@@ -40,12 +40,12 @@ public class BenchmarkIT {
                     Thread.currentThread().getContextClassLoader().getResourceAsStream("config-it.yml"))) {
                 config = new Yaml().loadAs(reader, Config.class);
             }
-            server = new WebServer().configure(config, "localhost", 7772);
+            server = new WebServer().configure(config, "localhost", 9709);
 
             // Prepare request fetching
             client = new OkHttpClient();
             request = new Request.Builder()
-                    .url("http://localhost:7772/metrics")
+                    .url("http://localhost:9709/metrics")
                     .build();
         }
 

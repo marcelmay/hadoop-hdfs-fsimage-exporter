@@ -388,7 +388,7 @@
                                             <tag>${project.version}</tag>
                                         </tags>
                                         <ports>
-                                            <port>7772</port>
+                                            <port>9709</port>
                                         </ports>
                                         <volumes>
                                             <volume>/fsimage-location</volume>
@@ -405,7 +405,7 @@
                                                 <arg>/bin/sh</arg>
                                                 <arg>-c</arg>
                                                 <arg>java $JAVA_OPTS -jar /opt/fsimage-exporter/fsimage-exporter.jar \
-                                                    0.0.0.0 7772 /opt/fsimage-exporter/fsimage-exporter-config.yml
+                                                    0.0.0.0 9709 /opt/fsimage-exporter/fsimage-exporter-config.yml
                                                 </arg>
                                             </exec>
                                         </entryPoint>
@@ -433,7 +433,7 @@
                                     </build>
                                     <run>
                                         <ports>
-                                            <port>7772:7772</port>
+                                            <port>9709:9709</port>
                                         </ports>
                                         <volumes>
                                             <bind>${basedir}/src/test/resources:/fsimage-location</bind>
