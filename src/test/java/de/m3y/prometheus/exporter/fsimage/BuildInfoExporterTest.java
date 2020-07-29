@@ -14,7 +14,7 @@ public class BuildInfoExporterTest {
     public void testCollect() {
         BuildInfoExporter buildInfoExporter = new BuildInfoExporter("my_fsimage_", "foo");
         final List<Collector.MetricFamilySamples> collect = buildInfoExporter.collect();
-        assertThat(getMetricFamilySamples(collect, "my_fsimage_app_info"))
+        assertThat(getMetricFamilySamples(collect, "my_fsimage_build_info"))
                 .hasTypeOfGauge()
                 .hasSampleLabelNames("appName", "appVersion", "buildTime", "buildScmVersion", "buildScmBranch")
                 .hasSampleValue(Arrays.asList(

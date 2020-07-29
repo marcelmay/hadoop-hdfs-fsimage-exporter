@@ -22,7 +22,7 @@ public class BuildInfoExporter extends Collector {
         super();
         this.appName = appName;
 
-        metricFamily = new GaugeMetricFamily(metricPrefix + "app_info",
+        metricFamily = new GaugeMetricFamily(metricPrefix + "build_info",
                 "Application build info",
                 Arrays.asList("appName", "appVersion", "buildTime", "buildScmVersion", "buildScmBranch"));
         metricFamily.addMetric(

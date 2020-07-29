@@ -78,7 +78,7 @@ public class WebServerIT {
 
         // App info
         assertThat(body)
-                .contains("fsimage_exporter_app_info{appName=\"fsimage_exporter\",appVersion=\"")
+                .contains("fsimage_exporter_build_info{appName=\"fsimage_exporter\",appVersion=\"")
                 .contains("fsimage_scrape_requests_total ")
                 .contains("fsimage_compute_stats_duration_seconds_count ")
                 .contains("fsimage_compute_stats_duration_seconds_sum ")
