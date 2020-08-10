@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -113,9 +114,8 @@ class FsImageUpdateHandler {
 
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition reportUpdated = lock.newCondition();
-    private FsImageReporter.Report report;
-    private FsImageReporter.Report currentReport;
-    private Config config;
+    private final AtomicReference<FsImageReporter.Report> report = new AtomicReference<>();
+    private final Config config;
 
     public FsImageUpdateHandler(Config config) {
         this.config = config;
@@ -128,22 +128,18 @@ class FsImageUpdateHandler {
      * @return true if error occurred
      */
     public boolean collectFsImageSamples(List<Collector.MetricFamilySamples> mfs) {
-        // Switch report
-        synchronized (this) {
-            final FsImageReporter.Report latestReport = getFsImageReport();
-            if (latestReport != currentReport) {
-                currentReport = latestReport;
-            }
-        }
+        FsImageReporter.Report currentReport = getFsImageReport();
+        updateMetricsFromReport(mfs, currentReport);
 
         mfs.addAll(metricLoadDuration.collect());
         mfs.addAll(metricVisitDuration.collect());
         mfs.addAll(metricLoadSize.collect());
 
-        return updateMetricsFromReport(mfs);
+        return currentReport.error;
     }
 
-    private boolean updateMetricsFromReport(List<Collector.MetricFamilySamples> mfs) {
+    private void updateMetricsFromReport(List<Collector.MetricFamilySamples> mfs,
+                                            FsImageReporter.Report currentReport) {
         // Overall stats
         overall.update(currentReport.overallStats);
         overall.collect(mfs);
@@ -177,9 +173,6 @@ class FsImageUpdateHandler {
         }
 
         currentReport.collect(mfs);
-
-        // Signal error, if background thread ran into error
-        return currentReport.error;
     }
 
 
@@ -192,12 +185,11 @@ class FsImageUpdateHandler {
 
             // ... compute stats
             try (Summary.Timer timer = metricVisitDuration.startTimer()) {
-                report = FsImageReporter.computeStatsReport(loader, config);
+                report.set(FsImageReporter.computeStatsReport(loader, config));
             }
             reportUpdated.signalAll(); // Notify any waits
         } catch (Exception e) {
-            LOGGER.error("Can not load FSImage", e);
-            report.error = true;
+            LOGGER.error("Can not load FSImage {}", fsImageFile, e);
         } finally {
             lock.unlock();
         }
@@ -223,18 +215,18 @@ class FsImageUpdateHandler {
     /**
      * Gets current report.
      * <p>
-     * Blocks if current report is still in computation.
-     * @see #onFsImageChange(File)
+     * Blocks if current report has never been computed before and is still pending / in computation
      *
-     * @return the current FSImage report.
+     * @return the current FSImage report, or null on computation error
+     * @see #onFsImageChange(File)
      */
     FsImageReporter.Report getFsImageReport() {
         // Use current report if exists, otherwise wait
-        if(null==report) {
+        if (null == report.get()) {
             // Blocks till there is a computed report
             lock.lock();
             try {
-                while (null == report) {
+                while (null == report.get()) {
                     reportUpdated.awaitUninterruptibly();
                 }
             } finally {
@@ -242,6 +234,6 @@ class FsImageUpdateHandler {
             }
         }
 
-        return report;
+        return report.get();
     }
 }

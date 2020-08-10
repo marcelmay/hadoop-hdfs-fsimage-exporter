@@ -133,6 +133,8 @@ public class FsImageReporter {
      * Contains collected statistics for an FSImage.
      */
     static class Report {
+        volatile boolean error = false;
+
         // Overall stats
         final OverallStats overallStats;
         final SimpleCollector overallFleSizeDistribution;
@@ -150,7 +152,6 @@ public class FsImageReporter {
         final Map<String, PathStats> pathStats;
         final SimpleCollector<?> pathFileSizeDistribution;
         final Function<String, PathStats> createPathStat;
-        boolean error = false;
         // Path sets
         final Map<String, PathStats> pathSetStats;
         final SimpleCollector pathSetFileSizeDistribution;
@@ -455,7 +456,7 @@ public class FsImageReporter {
                 } else {
                     expandedPaths.addAll(childPaths);
                 }
-            } catch(FileNotFoundException|NoSuchElementException ex) {
+            } catch (FileNotFoundException | NoSuchElementException ex) {
                 LOG.warn("Skipping configured, non-existing path {} for metric computations." +
                         " Check your configuration path/pathSet entries!", parent);
             }

@@ -40,11 +40,10 @@ public class FsImageCollector extends Collector {
             .name(METRIC_PREFIX + "scrape_duration_seconds")
             .help("Scrape duration").create();
 
-    private final FsImageWatcher fsImageWatcher;
     private final FsImageUpdateHandler fsImageReportUpdater;
 
 
-    private ScheduledExecutorService scheduler;
+    private final ScheduledExecutorService scheduler;
 
     FsImageCollector(Config config) {
         final String path = config.getFsImagePath();
@@ -59,7 +58,7 @@ public class FsImageCollector extends Collector {
         }
 
         fsImageReportUpdater = new FsImageUpdateHandler(config);
-        fsImageWatcher = new FsImageWatcher(fsImageDir,
+        FsImageWatcher fsImageWatcher = new FsImageWatcher(fsImageDir,
                 fsImageReportUpdater::onFsImageChange);
 
         scheduler = Executors.newScheduledThreadPool(1);
