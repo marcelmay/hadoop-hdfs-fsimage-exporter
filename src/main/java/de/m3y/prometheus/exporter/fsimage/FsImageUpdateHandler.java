@@ -8,7 +8,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import de.m3y.hadoop.hdfs.hfsa.core.FSImageLoader;
+import de.m3y.hadoop.hdfs.hfsa.core.FsImageData;
+import de.m3y.hadoop.hdfs.hfsa.core.FsImageLoader;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Summary;
@@ -181,11 +182,11 @@ class FsImageUpdateHandler {
             lock.lock();
 
             // Load new fsimage ...
-            FSImageLoader loader = loadFsImage(fsImageFile);
+            FsImageData fsImageData = loadFsImage(fsImageFile);
 
             // ... compute stats
             try (Summary.Timer timer = metricVisitDuration.startTimer()) {
-                report.set(FsImageReporter.computeStatsReport(loader, config));
+                report.set(FsImageReporter.computeStatsReport(fsImageData, config));
             }
             reportUpdated.signalAll(); // Notify any waits
         } catch (Exception e) {
@@ -195,19 +196,21 @@ class FsImageUpdateHandler {
         }
     }
 
-    private FSImageLoader loadFsImage(File fsImageFile) throws IOException {
+    private FsImageData loadFsImage(File fsImageFile) throws IOException {
         metricLoadSize.set(fsImageFile.length());
 
         try (RandomAccessFile raFile = new RandomAccessFile(fsImageFile, "r")) {
             long time = System.currentTimeMillis();
             try (Summary.Timer timer = metricLoadDuration.startTimer()) {
-                final FSImageLoader loader = FSImageLoader.load(raFile);
+                final FsImageData fsImageData = new FsImageLoader.Builder()
+                    .parallel().build()
+                    .load(raFile);
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info("Loaded {} with {}MiB in {}ms", fsImageFile.getAbsoluteFile(),
                             String.format("%.1f", fsImageFile.length() / 1024.0 / 1024.0),
                             System.currentTimeMillis() - time);
                 }
-                return loader;
+                return fsImageData;
             }
         }
     }

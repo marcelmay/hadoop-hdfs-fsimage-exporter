@@ -8,8 +8,9 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import de.m3y.hadoop.hdfs.hfsa.core.FSImageLoader;
+import de.m3y.hadoop.hdfs.hfsa.core.FsImageData;
 import de.m3y.hadoop.hdfs.hfsa.core.FsVisitor;
+import de.m3y.hadoop.hdfs.hfsa.util.FsUtil;
 import io.prometheus.client.Histogram;
 import io.prometheus.client.SimpleCollector;
 import io.prometheus.client.Summary;
@@ -291,18 +292,18 @@ public class FsImageReporter {
         // Nothing
     }
 
-    static Report computeStatsReport(final FSImageLoader loader, Config config) throws IOException {
+    static Report computeStatsReport(final FsImageData fsImageData, Config config) throws IOException {
         Report report = new Report(config);
         final OverallStats overallStats = report.overallStats;
 
         long t = System.currentTimeMillis();
-        loader.visitParallel(new FsVisitor() {
+        new FsVisitor.Builder().parallel().visit(fsImageData,new FsVisitor() {
             @Override
             public void onFile(FsImageProto.INodeSection.INode inode, String path) {
                 FsImageProto.INodeSection.INodeFile f = inode.getFile();
-                PermissionStatus p = loader.getPermissionStatus(f.getPermission());
+                PermissionStatus p = fsImageData.getPermissionStatus(f.getPermission());
 
-                final long fileSize = FSImageLoader.getFileSize(f);
+                final long fileSize = FsUtil.getFileSize(f);
                 final long fileBlocks = f.getBlocksCount();
                 overallStats.sumBlocks.add(fileBlocks);
                 overallStats.fileSize.observe(fileSize);
@@ -325,7 +326,7 @@ public class FsImageReporter {
             @Override
             public void onDirectory(FsImageProto.INodeSection.INode inode, String path) {
                 FsImageProto.INodeSection.INodeDirectory d = inode.getDirectory();
-                PermissionStatus p = loader.getPermissionStatus(d.getPermission());
+                PermissionStatus p = fsImageData.getPermissionStatus(d.getPermission());
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Visiting directory {}",
                             path + ("/".equals(path) ? "" : "/") + inode.getName().toStringUtf8());
@@ -347,7 +348,7 @@ public class FsImageReporter {
             @Override
             public void onSymLink(FsImageProto.INodeSection.INode inode, String path) {
                 FsImageProto.INodeSection.INodeSymlink d = inode.getSymlink();
-                PermissionStatus p = loader.getPermissionStatus(d.getPermission());
+                PermissionStatus p = fsImageData.getPermissionStatus(d.getPermission());
 
                 // Group stats
                 final String groupName = p.getGroupName();
@@ -364,24 +365,24 @@ public class FsImageReporter {
         });
         LOG.info("Finished computing overall/group/user stats in {}ms", System.currentTimeMillis() - t);
         if (config.hasPaths()) {
-            computePathStats(loader, config, report);
+            computePathStats(fsImageData, config, report);
         }
         if (config.hasPathSets()) {
-            computePathSetStatsParallel(loader, config, report);
+            computePathSetStatsParallel(fsImageData, config, report);
         }
 
         return report;
     }
 
-    private static void computePathStats(FSImageLoader loader, Config config, Report report) throws IOException {
-        Set<String> expandedPaths = expandPaths(loader, config.getPaths());
+    private static void computePathStats(FsImageData fsImageData, Config config, Report report) throws IOException {
+        Set<String> expandedPaths = expandPaths(fsImageData, config.getPaths());
         LOG.info("Expanded paths {} for path stats {}", expandedPaths, config.getPaths());
         long s = System.currentTimeMillis();
         expandedPaths.parallelStream().forEach(p -> {
             try {
                 long t = System.currentTimeMillis();
                 final PathStats pathStats = report.pathStats.computeIfAbsent(p, report.createPathStat);
-                loader.visit(new PathStatVisitor(pathStats), p);
+                new FsVisitor.Builder().visit(fsImageData, new PathStatVisitor(pathStats), p);
                 // Subtract start dir, as only child dirs count
                 pathStats.sumDirectories.decrement();
                 if (LOG.isDebugEnabled()) {
@@ -396,23 +397,24 @@ public class FsImageReporter {
         LOG.info("Finished {} path stats in {}ms", report.pathStats.size(), System.currentTimeMillis() - s);
     }
 
-    private static void computePathSetStatsParallel(FSImageLoader loader, Config config, Report report) {
+    private static void computePathSetStatsParallel(FsImageData fsImageData, Config config, Report report) {
         long s = System.currentTimeMillis();
         config.getPathSets().entrySet().parallelStream().forEach(entry ->
-                computePathSetStats(loader, entry, report)
+                computePathSetStats(fsImageData, entry, report)
         );
         LOG.info("Finished {} path set stats in {}ms", report.pathSetStats.size(), System.currentTimeMillis() - s);
     }
 
-    private static void computePathSetStats(FSImageLoader loader, Map.Entry<String, List<String>> entry, Report report) {
+    private static void computePathSetStats(FsImageData fsImageData, Map.Entry<String, List<String>> entry, Report report) {
+        final FsVisitor.Builder builder = new FsVisitor.Builder();
         try {
-            Set<String> expandedPaths = expandPaths(loader, entry.getValue());
+            Set<String> expandedPaths = expandPaths(fsImageData, entry.getValue());
             LOG.info("Expanded paths {} for path set stats {}", expandedPaths, entry.getKey());
             long t = System.currentTimeMillis();
             final PathStats pathStats = report.pathSetStats.computeIfAbsent(entry.getKey(), report.createPathSetStat);
             final PathStatVisitor visitor = new PathStatVisitor(pathStats);
             for (String path : expandedPaths) {
-                loader.visit(visitor, path);
+                builder.visit(fsImageData, visitor, path);
             }
             // Subtract number of start dirs, as only child dirs count
             pathStats.sumDirectories.add(-expandedPaths.size());
@@ -426,12 +428,12 @@ public class FsImageReporter {
         }
     }
 
-    static Set<String> expandPaths(FSImageLoader loader, Collection<String> paths) throws IOException {
+    static Set<String> expandPaths(FsImageData fsImageData, Collection<String> paths) throws IOException {
         Set<String> expandedPaths = new HashSet<>();
         for (String path : paths) {
             // If path does not exist, match child directories
-            if (!hasDirectory(loader, path)) {
-                addMatchingPaths(loader, expandedPaths, path);
+            if (!hasDirectory(fsImageData, path)) {
+                addMatchingPaths(fsImageData, expandedPaths, path);
             } else { // Existing directory
                 expandedPaths.add(path);
             }
@@ -440,7 +442,7 @@ public class FsImageReporter {
         return expandedPaths;
     }
 
-    private static void addMatchingPaths(FSImageLoader loader, Set<String> expandedPaths, String path)
+    private static void addMatchingPaths(FsImageData fsImageData, Set<String> expandedPaths, String path)
             throws IOException {
         int idx = path.lastIndexOf('/');
         if (idx < 0) {
@@ -448,7 +450,7 @@ public class FsImageReporter {
         } else {
             String parent = (idx == 0 ? "/" : path.substring(0, idx));
             try {
-                List<String> childPaths = loader.getChildPaths(parent);
+                List<String> childPaths = fsImageData.getChildDirectories(parent);
                 Pattern pattern = Pattern.compile(path);
                 childPaths.removeIf(p -> !pattern.matcher(p).matches());
                 if (childPaths.isEmpty()) {
@@ -466,12 +468,12 @@ public class FsImageReporter {
     /**
      * TODO: Replace once FSImageLoader contains this functionality
      */
-    private static boolean hasDirectory(FSImageLoader loader, String path) throws IOException {
+    private static boolean hasDirectory(FsImageData fsImageData, String path) throws IOException {
         if ("/".equals(path)) { // Root always exists
             return true;
         }
         try {
-            return null != loader.getINodeFromPath(path);
+            return null != fsImageData.getINodeFromPath(path);
         } catch (FileNotFoundException | IllegalArgumentException ex) {
             return false;
         }
@@ -489,7 +491,7 @@ public class FsImageReporter {
         public void onFile(FsImageProto.INodeSection.INode inode, String path) {
             FsImageProto.INodeSection.INodeFile f = inode.getFile();
             pathStats.sumBlocks.add(f.getBlocksCount());
-            final long fileSize = FSImageLoader.getFileSize(f);
+            final long fileSize = FsUtil.getFileSize(f);
             pathStats.fileSize.observe(fileSize);
         }
 
