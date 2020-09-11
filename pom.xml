@@ -274,6 +274,14 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <transformers>
+                        <transformer
+                            implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+                        <transformer
+                            implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer" />
+                        <transformer
+                            implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer" />
+                    </transformers>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
@@ -281,6 +289,8 @@
                                 <exclude>META-INF/*.SF</exclude>
                                 <exclude>META-INF/*.DSA</exclude>
                                 <exclude>META-INF/*.RSA</exclude>
+                                <exclude>META-INF/MANIFEST.MF</exclude>
+                                <exclude>META-INF/services/*</exclude>
                             </excludes>
                         </filter>
                     </filters>
@@ -344,24 +354,24 @@
                     <pushChanges>false</pushChanges>
                 </configuration>
             </plugin>
-           <plugin>
-               <artifactId>maven-enforcer-plugin</artifactId>
-               <executions>
-                   <execution>
-                       <id>enforce-maven</id>
-                       <goals>
-                           <goal>enforce</goal>
-                       </goals>
-                       <configuration>
-                           <rules>
-                               <requireMavenVersion>
-                                   <version>3.6</version>
-                               </requireMavenVersion>
-                           </rules>
-                       </configuration>
-                   </execution>
-               </executions>
-           </plugin>
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>3.6</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <profiles>
