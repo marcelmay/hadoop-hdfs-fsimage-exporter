@@ -17,7 +17,7 @@
         <connection>scm:git:https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter.git</connection>
         <developerConnection>scm:git:git@github.com:marcelmay/hadoop-hdfs-fsimage-exporter.git</developerConnection>
         <url>https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter</url>
-        <tag>release-1.4</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
@@ -347,7 +347,6 @@
                     <releaseProfiles>release</releaseProfiles>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <tagNameFormat>release-@{project.version}</tagNameFormat>
-                    <pushChanges>false</pushChanges>
                 </configuration>
             </plugin>
             <plugin>
