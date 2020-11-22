@@ -372,6 +372,10 @@
     <profiles>
         <profile>
             <id>docker</id>
+            <properties>
+              <docker.base.image>openjdk:11-jre-slim-buster</docker.base.image>
+              <image.name>marcelmay/hadoop-hdfs-fsimage-exporter</image.name>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -383,9 +387,9 @@
                             <autoPull>true</autoPull>
                             <images>
                                 <image>
-                                    <name>marcelmay/hadoop-hdfs-fsimage-exporter</name>
+                                    <name>${image.name}</name>
                                     <build>
-                                        <from>openjdk:11-jre-slim-buster</from>
+                                        <from>${docker.base.image}</from>
                                         <maintainer>https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter
                                         </maintainer>
                                         <tags>
