@@ -193,7 +193,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.2.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
@@ -377,7 +377,7 @@
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
-                        <version>0.33.0</version>
+                        <version>0.34.1</version>
                         <configuration>
                             <verbose>true</verbose>
                             <autoPull>true</autoPull>
