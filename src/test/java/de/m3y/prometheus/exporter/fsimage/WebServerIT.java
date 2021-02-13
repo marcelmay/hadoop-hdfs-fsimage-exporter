@@ -1,9 +1,5 @@
 package de.m3y.prometheus.exporter.fsimage;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -11,6 +7,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -78,7 +78,7 @@ public class WebServerIT {
 
         // App info
         assertThat(body)
-                .contains("fsimage_exporter_build_info{appName=\"fsimage_exporter\",appVersion=\"")
+                .contains("fsimage_exporter_build_info{appVersion=\"")
                 .contains("fsimage_scrape_requests_total ")
                 .contains("fsimage_compute_stats_duration_seconds_count ")
                 .contains("fsimage_compute_stats_duration_seconds_sum ")

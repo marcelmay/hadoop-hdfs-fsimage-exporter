@@ -359,7 +359,7 @@ fsimage_user_blocks{user_name="root",} 1.0
 fsimage_user_blocks{user_name="mm",} 14.0
 # HELP fsimage_exporter_build_info Application build info
 # TYPE fsimage_exporter_build_info gauge
-fsimage_exporter_build_info{appName="fsimage_exporter",appVersion="1.1-SNAPSHOT",buildTime="2017-10-17/19:13",buildScmVersion="491d70f88c6bc96c6a0d19fca27af07519534782",buildScmBranch="master",} 1.0
+fsimage_exporter_build_info{appVersion="1.1-SNAPSHOT",buildTime="2017-10-17/19:13",buildScmVersion="491d70f88c6bc96c6a0d19fca27af07519534782",buildScmBranch="master",} 1.0
 # HELP fsimage_scrape_requests_total Exporter requests made
 # TYPE fsimage_scrape_requests_total counter
 fsimage_scrape_requests_total 2.0

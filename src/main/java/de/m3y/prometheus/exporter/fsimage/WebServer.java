@@ -1,10 +1,7 @@
 package de.m3y.prometheus.exporter.fsimage;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
 import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.Info;
 import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.hotspot.MemoryPoolsExports;
 import org.apache.log4j.Level;
@@ -12,6 +9,10 @@ import org.apache.log4j.spi.RootLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 public class WebServer {
     private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
@@ -30,6 +31,11 @@ public class WebServer {
 
     private HTTPServerWithCustomHandler httpServer;
     private FsImageCollector fsImageCollector;
+    private final Info buildInfo = Info.build()
+            .name("fsimage_exporter_build")
+            .help("Hadoop FSImage exporter build info")
+            .labelNames("appVersion", "buildTime", "buildScmVersion", "buildScmBranch").create();
+
 
     WebServer configure(Config config, String address, int port) throws IOException {
         // Metrics
@@ -38,12 +44,19 @@ public class WebServer {
 
         new MemoryPoolsExports().register();
 
-        final BuildInfoExporter buildInfo = new BuildInfoExporter("fsimage_exporter_",
-                "fsimage_exporter").register();
+        // Build info
+        buildInfo.labels(
+                BuildMetaInfo.INSTANCE.getVersion(),
+                BuildMetaInfo.INSTANCE.getBuildTimeStamp(),
+                BuildMetaInfo.INSTANCE.getBuildScmVersion(),
+                BuildMetaInfo.INSTANCE.getBuildScmBranch()
+        );
+        buildInfo.register();
 
+        // Configure HTTP server
         InetSocketAddress inetAddress = new InetSocketAddress(address, port);
         httpServer = new HTTPServerWithCustomHandler(inetAddress);
-        httpServer.replaceRootHandler(new ConfigHttpHandler(config, buildInfo));
+        httpServer.replaceRootHandler(new ConfigHttpHandler(config));
         LOG.info("FSImage exporter started and listening on {}", inetAddress);
 
         return this;

@@ -1,11 +1,11 @@
 package de.m3y.prometheus.exporter.fsimage;
 
+import io.prometheus.client.Collector;
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-
-import io.prometheus.client.Collector;
-import org.junit.Test;
 
 import static de.m3y.prometheus.assertj.MetricFamilySamplesAssert.assertThat;
 import static de.m3y.prometheus.assertj.MetricFamilySamplesAssert.labelValues;
@@ -20,10 +20,10 @@ public class FsImageCollectorTest {
         FsImageCollector fsImageCollector = new FsImageCollector(config);
         final List<Collector.MetricFamilySamples> metricFamilySamples = fsImageCollector.collect();
 
-        assertThat(getMetricFamilySamples(metricFamilySamples, "fsimage_scrape_requests_total"))
+        assertThat(getMetricFamilySamples(metricFamilySamples, "fsimage_scrape_requests"))
                 .hasTypeOfCounter()
                 .hasSampleValue(1.0);
-        assertThat(getMetricFamilySamples(metricFamilySamples, "fsimage_scrape_requests_total")).hasTypeOfCounter()
+        assertThat(getMetricFamilySamples(metricFamilySamples, "fsimage_scrape_requests")).hasTypeOfCounter()
                 .hasSampleValue(1);
         assertThat(getMetricFamilySamples(metricFamilySamples, "fsimage_compute_stats_duration_seconds"))
                 .hasTypeOfSummary()
@@ -33,7 +33,7 @@ public class FsImageCollectorTest {
                 .hasSampleValue(da -> da.isGreaterThan(0).isLessThan(1));
         assertThat(getMetricFamilySamples(metricFamilySamples, "fsimage_load_file_size_bytes")).hasTypeOfGauge()
                 .hasSampleValue(2420);
-        assertThat(getMetricFamilySamples(metricFamilySamples, "fsimage_scrape_errors_total")).hasTypeOfCounter()
+        assertThat(getMetricFamilySamples(metricFamilySamples, "fsimage_scrape_errors")).hasTypeOfCounter()
                 .hasSampleValue(0.0);
         assertThat(getMetricFamilySamples(metricFamilySamples, "fsimage_load_duration_seconds"))
                 .hasTypeOfSummary()

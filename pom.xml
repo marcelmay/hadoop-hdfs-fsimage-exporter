@@ -79,17 +79,17 @@
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient</artifactId>
-            <version>0.9.0</version>
+            <version>0.10.0</version>
         </dependency>
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_httpserver</artifactId>
-            <version>0.9.0</version>
+            <version>0.10.0</version>
         </dependency>
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_hotspot</artifactId>
-            <version>0.9.0</version>
+            <version>0.10.0</version>
         </dependency>
         <!-- Testing -->
         <dependency>
@@ -101,13 +101,13 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.18.1</version>
+            <version>3.19.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>de.m3y.prometheus.assertj</groupId>
             <artifactId>assertj-prometheus</artifactId>
-            <version>0.4</version>
+            <version>0.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -315,19 +315,19 @@
                     <injections>
                         <injection>
                             <value>${project.version}</value> <!-- Inject Maven project version -->
-                            <pointCut>de.m3y.prometheus.exporter.fsimage.BuildInfoExporter.getAppVersion</pointCut>
+                            <pointCut>de.m3y.prometheus.exporter.fsimage.BuildMetaInfo.getVersion</pointCut>
                         </injection>
                         <injection>
                             <value>${maven.build.timestamp}</value>
-                            <pointCut>de.m3y.prometheus.exporter.fsimage.BuildInfoExporter.getBuildTimeStamp</pointCut>
+                            <pointCut>de.m3y.prometheus.exporter.fsimage.BuildMetaInfo.getBuildTimeStamp</pointCut>
                         </injection>
                         <injection>
                             <value>${buildNumber}</value> <!-- Provided by buildnumber-maven-plugin -->
-                            <pointCut>de.m3y.prometheus.exporter.fsimage.BuildInfoExporter.getBuildScmVersion</pointCut>
+                            <pointCut>de.m3y.prometheus.exporter.fsimage.BuildMetaInfo.getBuildScmVersion</pointCut>
                         </injection>
                         <injection>
                             <value>${scmBranch}</value> <!-- Provided by buildnumber-maven-plugin -->
-                            <pointCut>de.m3y.prometheus.exporter.fsimage.BuildInfoExporter.getBuildScmBranch</pointCut>
+                            <pointCut>de.m3y.prometheus.exporter.fsimage.BuildMetaInfo.getBuildScmBranch</pointCut>
                         </injection>
                     </injections>
                 </configuration>

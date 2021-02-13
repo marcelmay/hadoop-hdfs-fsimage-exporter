@@ -1,5 +1,7 @@
 package de.m3y.prometheus.exporter.fsimage;
 
+import com.sun.net.httpserver.HttpExchange;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -8,19 +10,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.net.httpserver.HttpExchange;
-
 /**
  * Displays a welcome page containing build info and link to metrics.
  */
 public class ConfigHttpHandler implements com.sun.net.httpserver.HttpHandler {
 
     private final Config config;
-    private final BuildInfoExporter buildInfoExporter;
 
-    public ConfigHttpHandler(Config config, BuildInfoExporter buildInfoExporter) {
+    public ConfigHttpHandler(Config config) {
         this.config = config;
-        this.buildInfoExporter = buildInfoExporter;
     }
 
     @Override
@@ -45,10 +43,10 @@ public class ConfigHttpHandler implements com.sun.net.httpserver.HttpHandler {
                 + "<p><a href=\"/metrics\">Metrics</a></p>\n"
                 + "<h2>Build info</h2>"
                 + "<ul>"
-                + "<li>App version: ").append(buildInfoExporter.getAppVersion()).append("</li>"
-                + "<li>Build time : ").append(buildInfoExporter.getBuildTimeStamp()).append("</li>"
-                + "<li>SCM branch : ").append(buildInfoExporter.getBuildScmBranch()).append("</li>"
-                + "<li>SCM version : ").append(buildInfoExporter.getBuildScmVersion()).append("</li>"
+                + "<li>App version: ").append(BuildMetaInfo.INSTANCE.getVersion()).append("</li>"
+                + "<li>Build time : ").append(BuildMetaInfo.INSTANCE.getBuildTimeStamp()).append("</li>"
+                + "<li>SCM branch : ").append(BuildMetaInfo.INSTANCE.getBuildScmBranch()).append("</li>"
+                + "<li>SCM version : ").append(BuildMetaInfo.INSTANCE.getBuildScmVersion()).append("</li>"
                 + "</ul>"
                 + "<h2>Configuration</h2><ul>"
                 + "<li>Path to HDFS NameNode fsImage snapshots : ").append(config.getFsImagePath()).append("</li>");
