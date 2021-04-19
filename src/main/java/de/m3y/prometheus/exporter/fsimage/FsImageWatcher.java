@@ -1,14 +1,14 @@
 package de.m3y.prometheus.exporter.fsimage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Watches fsimage for changes (filename version increment) and triggers update handler function.
@@ -53,29 +53,33 @@ public class FsImageWatcher implements Runnable {
 
     @Override
     public void run() {
-        File fsImageFile = findLatestFSImageFile(fsImageDir);
-        if (!fsImageFile.equals(latestFsImageFile)) {
-            LOGGER.debug("Detected changes (old={}, new={})",
-                    null == latestFsImageFile ? "" : latestFsImageFile.getAbsoluteFile(),
-                    fsImageFile.getAbsoluteFile());
-            latestFsImageFile = fsImageFile;
-            // Notify
-            changeHandler.accept(fsImageFile);
-        } else {
-            LOGGER.debug("Skipping previously discovered {}", fsImageFile.getAbsoluteFile());
+        try {
+            File fsImageFile = findLatestFSImageFile(fsImageDir);
+            if (!fsImageFile.equals(latestFsImageFile)) {
+                LOGGER.debug("Detected changes (old={}, new={})",
+                        null == latestFsImageFile ? "" : latestFsImageFile.getAbsoluteFile(),
+                        fsImageFile.getAbsoluteFile());
+                latestFsImageFile = fsImageFile;
+                // Notify
+                changeHandler.accept(fsImageFile);
+            } else {
+                LOGGER.debug("Skipping previously discovered {}", fsImageFile.getAbsoluteFile());
+            }
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            LOGGER.warn("Can not detect fsimage file : {}", ex.getMessage());
         }
     }
 
     static File findLatestFSImageFile(File fsImageDir) {
         // Check dir
         if (!fsImageDir.exists()) {
-            throw new IllegalArgumentException(fsImageDir.getAbsolutePath() + " doest not exist");
+            throw new IllegalArgumentException("Directory " + fsImageDir.getAbsolutePath() + " for fsimage files does not exist");
         }
 
         final File[] files = fsImageDir.listFiles(FSIMAGE_FILTER);
         if (null == files || files.length == 0) {
-            throw new IllegalStateException("No fsimage files found in " + fsImageDir.getAbsolutePath()
-                    + " matching " + FsImageWatcher.FSImageFilenameFilter.FS_IMAGE_PATTERN);
+            throw new IllegalStateException("No fsimage file(s) found in " + fsImageDir.getAbsolutePath()
+                    + " matching pattern " + FsImageWatcher.FSImageFilenameFilter.FS_IMAGE_PATTERN);
         }
 
         Arrays.sort(files, FSIMAGE_FILENAME_COMPARATOR);

@@ -38,10 +38,7 @@ public class WebServer {
 
 
     WebServer configure(Config config, String address, int port) throws IOException {
-        // Metrics
-        fsImageCollector = new FsImageCollector(config);
-        fsImageCollector.register();
-
+        // Exporter own JVM metrics
         new MemoryPoolsExports().register();
 
         // Build info
@@ -57,7 +54,11 @@ public class WebServer {
         InetSocketAddress inetAddress = new InetSocketAddress(address, port);
         httpServer = new HTTPServerWithCustomHandler(inetAddress);
         httpServer.replaceRootHandler(new ConfigHttpHandler(config));
-        LOG.info("FSImage exporter started and listening on {}", inetAddress);
+        LOG.info("FSImage exporter started and listening on http://{}:{}", inetAddress.getHostName(), inetAddress.getPort());
+
+        // Waits for parsed fsimage, so should run last after started HTTP server
+        fsImageCollector = new FsImageCollector(config);
+        fsImageCollector.register();
 
         return this;
     }
