@@ -1,13 +1,5 @@
 package de.m3y.prometheus.exporter.fsimage;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.LongAdder;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-
 import de.m3y.hadoop.hdfs.hfsa.core.FsImageData;
 import de.m3y.hadoop.hdfs.hfsa.core.FsVisitor;
 import de.m3y.hadoop.hdfs.hfsa.util.FsUtil;
@@ -18,6 +10,14 @@ import org.apache.hadoop.fs.permission.PermissionStatus;
 import org.apache.hadoop.hdfs.server.namenode.FsImageProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.METRIC_PREFIX;
 import static de.m3y.prometheus.exporter.fsimage.FsImageCollector.MetricFamilySamples;
@@ -81,9 +81,9 @@ public class FsImageReporter {
     }
 
     abstract static class AbstractFileSystemStats {
-        LongAdder sumDirectories = new LongAdder();
-        LongAdder sumBlocks = new LongAdder();
-        LongAdder sumSymLinks = new LongAdder();
+        final LongAdder sumDirectories = new LongAdder();
+        final LongAdder sumBlocks = new LongAdder();
+        final LongAdder sumSymLinks = new LongAdder();
         final MetricAdapter fileSize;
 
         protected AbstractFileSystemStats(MetricAdapter fileSize) {

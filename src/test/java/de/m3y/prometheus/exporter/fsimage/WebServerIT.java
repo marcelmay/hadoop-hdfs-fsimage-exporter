@@ -66,7 +66,7 @@ public class WebServerIT {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         server.stop();
     }
 

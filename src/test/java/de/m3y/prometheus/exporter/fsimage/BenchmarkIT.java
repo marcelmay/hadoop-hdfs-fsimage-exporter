@@ -1,11 +1,5 @@
 package de.m3y.prometheus.exporter.fsimage;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.File;
-import java.io.Reader;
-import java.util.concurrent.TimeUnit;
-
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -20,6 +14,12 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.yaml.snakeyaml.Yaml;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Benchmark and stress fsimage exporter
@@ -59,7 +59,7 @@ public class BenchmarkIT {
         }
 
         @TearDown
-        public void tearDown() throws Exception {
+        public void tearDown() {
             server.stop();
         }
     }
