@@ -18,13 +18,15 @@ This approach has the advantage of
 * adding no heavy additional load to HDFS NameNode (no NameNode queries, you can run it on 2nd NameNode)
 
 The disadvantage is
-* no real time update, only about every 6h when NameNode writes FSImage. But should be sufficient for most cases (long term trend, detecting HDFS small file abuses, user and group stats)
+* no real time update, only when NameNode writes FSImage (interval of hours, see
+  [dfs.namenode.checkpoint.period](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml#dfs.namenode.checkpoint.period)).  
+  This should be sufficient for most cases (long term trend, detecting HDFS small file abuses, user and group stats)
 * parsing takes 2x-3x FSImage size in heap space
 
 ![FSImage Exporter overview](fsimage_exporter.png)
 
-The exporter parses fsimages in background thread which checks every 60s for fsimage changes.
-This avoids blocking and long running Prometheus scrapes and potentially stale metrics.
+The exporter parses fsimage data in background thread which checks every 60s for fsimage changes.
+This avoids blocking and long-running Prometheus scrapes and potentially stale metrics.
 
 ## Grafana dashboards
 
@@ -67,12 +69,12 @@ docker run -i -t -p 9709:9709 -v $PWD/src/test/resources:/fsimage-location \
            marcelmay/hadoop-hdfs-fsimage-exporter
 ```
 
-When running the docker image via Maven, docker will mount the projects src/test/resources directory (with test fsimage) and expose the exporter on http://0.0.0.0:9709/ .
+When running the docker image via Maven, docker will mount the projects' src/test/resources directory (with test fsimage) and expose the exporter on http://0.0.0.0:9709/ .
 
 
 ## Installation and configuration
 
-* Install the JAR on a system where the FSImage is locally available (eg name node server).
+* Install the JAR on a system where the FSImage is locally available (e.g. name node server).
 
 * Configure the exporter     
   Create a yml file (see [example.yml](example.yml)):
@@ -129,7 +131,7 @@ When running the docker image via Maven, docker will mount the projects src/test
          -jar target/fsimage-exporter-1.0-SNAPSHOT.jar \
          0.0.0.0 9709 example.yml
   ```
-  Note: Make sure to size the heap correctly. As an heuristic, you can use 3 * fsimage size.
+  Note: Make sure to size the heap correctly. As a heuristic, you can use 3 * fsimage size.
 
   Note: Previous versions up to 1.3 use the default port 7772 instead of 9709
   
@@ -150,6 +152,76 @@ When running the docker image via Maven, docker will mount the projects src/test
   For Grafana, you want to sample more often with a scrape interval of minutes.
   The exporter caches previously parsed FSImage, so it is a fast operation.
 
+
+## Metrics
+
+The metrics follow the naming and labelling pattern fsimage_[*AGG*_][*NAME*_]_[*METRIC TYPE SPECIFIC*] where
+* *AGG* is the aggregation level
+  * Empty aggregation for overall stats  
+    Example for total number of files: `fsimage_fsize_count{}`
+  * *user* for by user aggregations
+    Example for number of files for a user: `fsimage_user_fsize_count{user_name="foo"}`
+  * *group* for by group aggregations  
+    Example for number of files for a group: `fsimage_group_fsize_count{group_name="nobody"}`
+  * *path* for by configured path aggregations  
+    Example for total size in path: `fsimage_path_fsize_sum{path="/datalake/asset2"}`
+  * *path_set* for by configured path set aggregations  
+    A path set aggregates for several configured paths and is identified by name  
+    Example for total number of files for given path set `logs` : `fsimage_path_set_fsize_count{path_set="logs"}`
+
+* *NAME* can be 
+  * `fsize` for tracking file size and file number
+  * `replication` for tracking file replication
+  * `blocks` for number of file data blocks
+  * `dirs` for tracking number of files 
+  * `links` for tracking number of symbolic links 
+ 
+* *METRIC TYPE SPECIFIC* depends on metric type ([Counter, Gauge, Histogram, Summary ...](https://prometheus.io/docs/concepts/metric_types/)) 
+ 
+### Details
+* File size `fsize`
+  * Tracks number of files and file size
+  * Type: Depends on configuration flag `skipFileDistribution[ForUser|ForGroup|ForPath|ForPathSets]Stats`
+    * [Summary](https://prometheus.io/docs/concepts/metric_types/#summary) : when flag is `false` (default)
+    * [Histogram](https://prometheus.io/docs/concepts/metric_types/#histogram) : when flag is `true`  
+      Note that you can also configure the buckets via `fileSizeDistributionBuckets`
+  * fsimage_[*AGG*_]fsize_count : The total number of files
+  * fsimage_[*AGG*_]fsize_sum : The total number of bytes 
+  * fsimage_[*AGG*_]fsize_bucket{le="<upper inclusive bound>"} : The number of files in this bucket range
+ 
+* Replication `replication`
+  * Tracks file replication
+  * Type: [Summary](https://prometheus.io/docs/concepts/metric_types/#summary)
+  * fsimage_[*AGG*_]replication_count
+  * fsimage_[*AGG*_]replication_sum
+  
+* File `blocks`
+  * Tracks number of file blocks
+  * Type: [Gauge](https://prometheus.io/docs/concepts/metric_types/#gauge)
+  * fsimage_[*AGG*_]blocks
+
+* Directory `dirs`
+  * Tracks number of directories
+  * Type: [Gauge](https://prometheus.io/docs/concepts/metric_types/#gauge)
+  * fsimage_[*AGG*_]dirs
+
+* Directory `links`
+  * Tracks number of filesystem links
+  * Type: [Gauge](https://prometheus.io/docs/concepts/metric_types/#gauge)
+  * fsimage_[*AGG*_]links
+
+### Exporter internal metrics
+
+| Metric | Type | Descriptions |
+|--------|------|--------------|
+| fsimage_exporter_build_info{appVersion, buildTime, buildScmVersion, buildScmBranch} | Info | Build info |
+| fsimage_compute_stats_duration_seconds[_count,_sum] | Summary | Time for computing stats for a loaded/parsed FSImage (after parsing) |
+| fsimage_load_duration_seconds[_count,_sum] | Summary | Time for loading/parsing FSImage |
+| fsimage_load_file_size_bytes | Gauge | Size of raw FSImage file parsed |
+| fsimage_scrape_duration_seconds | Gauge | Exporter scrape request duration (does not include fsimage load/parsing/stats-computation)|
+| fsimage_scrape_errors_total | Count | Count of failed scrapes |
+| fsimage_scrape_requests_total | Count | Total number of scrape requests received |
+| jvm_memory* | | Exporter JVM memory settings, see [MemoryPoolsExports](https://prometheus.github.io/client_java/io/prometheus/client/hotspot/MemoryPoolsExports.html) |
 
 ## Example output
 
