@@ -373,7 +373,7 @@
         <profile>
             <id>docker</id>
             <properties>
-              <docker.base.image>openjdk:11.0.10-jre-slim-buster</docker.base.image>
+              <docker.base.image>openjdk:11.0.11-jre-slim-buster</docker.base.image>
               <image.name>marcelmay/hadoop-hdfs-fsimage-exporter</image.name>
             </properties>
             <build>
