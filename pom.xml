@@ -4,7 +4,7 @@
 
     <groupId>de.m3y.prometheus.exporter.fsimage</groupId>
     <artifactId>fsimage-exporter</artifactId>
-    <version>1.4.2</version>
+    <version>1.5-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Hadoop HDFS FSImage Exporter</name>
 
@@ -17,7 +17,7 @@
         <connection>scm:git:https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter.git</connection>
         <developerConnection>scm:git:git@github.com:marcelmay/hadoop-hdfs-fsimage-exporter.git</developerConnection>
         <url>https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter</url>
-        <tag>release-1.4.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
