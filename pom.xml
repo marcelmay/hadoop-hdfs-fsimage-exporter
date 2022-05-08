@@ -107,7 +107,7 @@
         <dependency>
             <groupId>de.m3y.prometheus.assertj</groupId>
             <artifactId>assertj-prometheus</artifactId>
-            <version>0.5</version>
+            <version>0.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>
