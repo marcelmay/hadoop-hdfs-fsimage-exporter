@@ -149,7 +149,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M6</version>
+                    <version>3.0.0-M7</version>
                     <configuration>
                         <includes>
                             <include>**/*Test.java</include>
@@ -161,7 +161,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.0.0-M6</version>
+                    <version>3.0.0-M7</version>
                     <executions>
                         <execution>
                             <id>failsafe-integration-tests</id>
@@ -381,7 +381,7 @@
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
-                        <version>0.39.1</version>
+                        <version>0.40.0</version>
                         <configuration>
                             <verbose>true</verbose>
                             <autoPull>true</autoPull>
