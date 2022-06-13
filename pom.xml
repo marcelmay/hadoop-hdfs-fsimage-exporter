@@ -216,7 +216,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>3.0.0-M5</version>
+                    <version>3.0.0-M6</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-deploy-plugin</artifactId>
@@ -233,7 +233,11 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>4.0.0-M1</version>
                 </plugin>
                 <plugin> <!-- Required for SCM properties buildNumber and scmBranch -->
                     <groupId>org.codehaus.mojo</groupId>
@@ -373,7 +377,6 @@
         <profile>
             <id>docker</id>
             <properties>
-              <docker.base.image>openjdk:17.0.2-slim-bullseye</docker.base.image>
               <image.name>marcelmay/hadoop-hdfs-fsimage-exporter</image.name>
             </properties>
             <build>
@@ -381,7 +384,7 @@
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
-                        <version>0.40.0</version>
+                        <version>0.40.1</version>
                         <configuration>
                             <verbose>true</verbose>
                             <autoPull>true</autoPull>
@@ -389,56 +392,17 @@
                                 <image>
                                     <name>${image.name}</name>
                                     <build>
-                                        <from>${docker.base.image}</from>
-                                        <maintainer>https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter
-                                        </maintainer>
+                                        <contextDir>${basedir}</contextDir>
                                         <tags>
                                             <tag>latest</tag>
                                             <tag>${project.version}</tag>
                                         </tags>
-                                        <ports>
-                                            <port>9709</port>
-                                        </ports>
-                                        <volumes>
-                                            <volume>/fsimage-location</volume>
-                                        </volumes>
-                                        <buildOptions>
-                                            <shmsize>2147483648</shmsize>
-                                        </buildOptions>
-                                        <env>
-                                            <JAVA_OPTS>-server -dsa -da -XX:+UseG1GC -Xmx1024m</JAVA_OPTS>
-                                        </env>
-                                        <entryPoint>
-                                            <!-- exec form for ENTRYPOINT -->
-                                            <exec>
-                                                <arg>/bin/sh</arg>
-                                                <arg>-c</arg>
-                                                <arg>java $JAVA_OPTS -jar /opt/fsimage-exporter/fsimage-exporter.jar \
-                                                    0.0.0.0 9709 /opt/fsimage-exporter/fsimage-exporter-config.yml
-                                                </arg>
-                                            </exec>
-                                        </entryPoint>
-                                        <assembly>
-                                            <mode>dir</mode>
-                                            <targetDir>/opt/fsimage-exporter</targetDir>
-                                            <inline>
-                                                <dependencySets>
-                                                    <dependencySet>
-                                                        <includes>
-                                                            <include>${project.groupId}:${project.artifactId}</include>
-                                                        </includes>
-                                                        <outputFileNameMapping>fsimage-exporter.jar
-                                                        </outputFileNameMapping>
-                                                    </dependencySet>
-                                                </dependencySets>
-                                                <files>
-                                                    <file>
-                                                        <source>fsimage-docker.yml</source>
-                                                        <destName>fsimage-exporter-config.yml</destName>
-                                                    </file>
-                                                </files>
-                                            </inline>
-                                        </assembly>
+                                        <buildx>
+                                            <platforms>
+                                                <platform>linux/amd64</platform>
+                                                <platform>linux/arm64</platform>
+                                            </platforms>
+                                        </buildx>
                                     </build>
                                     <run>
                                         <ports>
