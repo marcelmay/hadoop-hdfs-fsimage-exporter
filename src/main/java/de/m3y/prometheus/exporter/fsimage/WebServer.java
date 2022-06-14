@@ -3,7 +3,7 @@ package de.m3y.prometheus.exporter.fsimage;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Info;
 import io.prometheus.client.exporter.HTTPServer;
-import io.prometheus.client.hotspot.MemoryPoolsExports;
+import io.prometheus.client.hotspot.DefaultExports;
 import org.apache.log4j.Level;
 import org.apache.log4j.spi.RootLogger;
 import org.slf4j.Logger;
@@ -39,7 +39,7 @@ public class WebServer {
 
     WebServer configure(Config config, String address, int port) throws IOException {
         // Exporter own JVM metrics
-        new MemoryPoolsExports().register();
+        DefaultExports.initialize();
 
         // Build info
         buildInfo.labels(
