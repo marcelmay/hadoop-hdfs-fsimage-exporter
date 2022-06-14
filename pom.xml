@@ -28,7 +28,7 @@
     <licenses>
         <license>
             <name>Apache 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
 
@@ -336,7 +336,7 @@
                     </injections>
                 </configuration>
                 <executions>
-                    <execution> <!-- (3) Hook plugin into lifecyle after compilation-->
+                    <execution> <!-- (3) Hook plugin into lifecycle after compilation-->
                         <phase>process-classes</phase>
                         <goals>
                             <goal>inject</goal>

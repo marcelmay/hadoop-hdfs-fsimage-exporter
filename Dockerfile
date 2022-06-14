@@ -11,8 +11,8 @@
 #
 FROM azul/zulu-openjdk-alpine:17.0.3-jre-headless
 
-LABEL org.opencontainers.image.url https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter
-LABEL org.opencontainers.image.source https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter/blob/master/Dockerfile
+LABEL org.opencontainers.image.url=https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter
+LABEL org.opencontainers.image.source=https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter/blob/master/Dockerfile
 
 EXPOSE 9709
 ARG APP_USER=fsimage_exporter

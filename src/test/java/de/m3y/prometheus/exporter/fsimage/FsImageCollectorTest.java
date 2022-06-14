@@ -3,7 +3,7 @@ package de.m3y.prometheus.exporter.fsimage;
 import io.prometheus.client.Collector;
 import org.junit.Test;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -45,7 +45,7 @@ public class FsImageCollectorTest {
     public void testCollectNonExistingPath() {
         Config config = new Config();
         config.setFsImagePath("src/test/resources");
-        config.setPaths(new HashSet<String>(Arrays.asList("/non/existing/path/.*")));
+        config.setPaths(new HashSet<>(Collections.singletonList("/non/existing/path/.*")));
         FsImageCollector fsImageCollector = new FsImageCollector(config);
         final List<Collector.MetricFamilySamples> metricFamilySamples = fsImageCollector.collect();
 
@@ -62,7 +62,7 @@ public class FsImageCollectorTest {
     public void testCollectForPath() {
         Config config = new Config();
         config.setFsImagePath("src/test/resources");
-        config.setPaths(new HashSet<String>(Arrays.asList("/datalake/.*")));
+        config.setPaths(new HashSet<>(Collections.singletonList("/datalake/.*")));
         FsImageCollector fsImageCollector = new FsImageCollector(config);
         final List<Collector.MetricFamilySamples> metricFamilySamples = fsImageCollector.collect();
 

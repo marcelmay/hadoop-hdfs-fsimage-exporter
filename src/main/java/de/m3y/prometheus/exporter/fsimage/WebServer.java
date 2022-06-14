@@ -64,7 +64,7 @@ public class WebServer {
     }
 
     public void stop() {
-        httpServer.stop();
+        httpServer.close();
         fsImageCollector.shutdown();
     }
 

@@ -212,16 +212,16 @@ The metrics follow the naming and labelling pattern fsimage_[*AGG*_][*NAME*_]_[*
 
 ### Exporter internal metrics
 
-| Metric | Type | Descriptions |
-|--------|------|--------------|
-| fsimage_exporter_build_info{appVersion, buildTime, buildScmVersion, buildScmBranch} | Info | Build info |
-| fsimage_compute_stats_duration_seconds[_count,_sum] | Summary | Time for computing stats for a loaded/parsed FSImage (after parsing) |
-| fsimage_load_duration_seconds[_count,_sum] | Summary | Time for loading/parsing FSImage |
-| fsimage_load_file_size_bytes | Gauge | Size of raw FSImage file parsed |
-| fsimage_scrape_duration_seconds | Gauge | Exporter scrape request duration (does not include fsimage load/parsing/stats-computation)|
-| fsimage_scrape_errors_total | Count | Count of failed scrapes |
-| fsimage_scrape_requests_total | Count | Total number of scrape requests received |
-| jvm_memory* | | Exporter JVM memory settings, see [MemoryPoolsExports](https://prometheus.github.io/client_java/io/prometheus/client/hotspot/MemoryPoolsExports.html) |
+| Metric                                                                              | Type    | Descriptions                                                                                                                                          |
+|-------------------------------------------------------------------------------------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| fsimage_exporter_build_info{appVersion, buildTime, buildScmVersion, buildScmBranch} | Info    | Build info                                                                                                                                            |
+| fsimage_compute_stats_duration_seconds[_count,_sum]                                 | Summary | Time for computing stats for a loaded/parsed FSImage (after parsing)                                                                                  |
+| fsimage_load_duration_seconds[_count,_sum]                                          | Summary | Time for loading/parsing FSImage                                                                                                                      |
+| fsimage_load_file_size_bytes                                                        | Gauge   | Size of raw FSImage file parsed                                                                                                                       |
+| fsimage_scrape_duration_seconds                                                     | Gauge   | Exporter scrape request duration (does not include fsimage load/parsing/stats-computation)                                                            |
+| fsimage_scrape_errors_total                                                         | Count   | Count of failed scrapes                                                                                                                               |
+| fsimage_scrape_requests_total                                                       | Count   | Total number of scrape requests received                                                                                                              |
+| jvm_memory*                                                                         |         | Exporter JVM memory settings, see [MemoryPoolsExports](https://prometheus.github.io/client_java/io/prometheus/client/hotspot/MemoryPoolsExports.html) |
 
 ## Example output
 
@@ -575,7 +575,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
