@@ -4,7 +4,7 @@
 
     <groupId>de.m3y.prometheus.exporter.fsimage</groupId>
     <artifactId>fsimage-exporter</artifactId>
-    <version>1.4.3</version>
+    <version>1.5-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Hadoop HDFS FSImage Exporter</name>
 
