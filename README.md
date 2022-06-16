@@ -2,7 +2,8 @@ Prometheus Hadoop HDFS FSImage Exporter
 =======
 
 [![Apache License, Version 2.0, January 2004](https://img.shields.io/github/license/apache/maven.svg?label=License)][license]
-[![Maven Central](https://img.shields.io/maven-central/v/de.m3y.prometheus.exporter.fsimage/fsimage-exporter.svg?style=flat-square)][maven_repo_search] | [Docker Hub](https://hub.docker.com/r/marcelmay/hadoop-hdfs-fsimage-exporter/)
+[![Maven Central](https://img.shields.io/maven-central/v/de.m3y.prometheus.exporter.fsimage/fsimage-exporter.svg?style=flat-square)][maven_repo_search]
+[![Docker Pulls](https://img.shields.io/docker/pulls/marcelmay/hadoop-hdfs-fsimage-exporter.svg?cacheSeconds=604800)][hub]
 
 Exports Hadoop HDFS statistics to [Prometheus monitoring](https://prometheus.io/) including
 * total / per user / per group / per configured directory path / per set of paths 
