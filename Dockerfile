@@ -17,7 +17,7 @@ LABEL org.opencontainers.image.source=https://github.com/marcelmay/hadoop-hdfs-f
 EXPOSE 9709
 ARG APP_USER=fsimage_exporter
 ARG APP_USER_ID=1000
-ARG APP_HOME=/opt/fsimage_exporter
+ARG APP_HOME=/opt/fsimage-exporter
 
 ENV JAVA_OPTS -server
 ENV FSIMAGE_EXPORTER_OPTS 0.0.0.0 9709 $APP_HOME/fsimage-exporter-config.yml
