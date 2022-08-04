@@ -92,10 +92,11 @@ When running the docker image via Maven, docker will mount the projects' src/tes
   skipFileDistributionForUserStats : false
   
   # Compute per path stats
-  # Supports regex matching for direct child directories
+  # Supports regex matching per path part
   paths:
     - '/tmp'
-    - '/datalake/a.*'
+    - '/datalak.?/a.*'
+    - '/hive_warehouse/.*/.*'
     - '/user/m.*'
     
   # Skip file size distribution for path based stats
@@ -109,6 +110,7 @@ When running the docker image via Maven, docker will mount the projects' src/tes
       '/datalake/asset3',
       '/user/mm',
       '/user/foo'
+      '/user/b.*' # With regexp for path part
       ]
     'datalakeAsset1and2' : [
       '/datalake/asset1',

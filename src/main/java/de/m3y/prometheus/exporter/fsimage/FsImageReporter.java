@@ -138,15 +138,15 @@ public class FsImageReporter {
 
         // Overall stats
         final OverallStats overallStats;
-        final SimpleCollector overallFleSizeDistribution;
+        final SimpleCollector<?> overallFleSizeDistribution;
         final Summary overallReplication;
         // Group stats
         final Map<String, GroupStats> groupStats;
-        final SimpleCollector groupFileSizeDistribution;
+        final SimpleCollector<?> groupFileSizeDistribution;
         final Function<String, GroupStats> createGroupStats;
         // User stats
         final Map<String, UserStats> userStats;
-        final SimpleCollector userFileSizeDistribution;
+        final SimpleCollector<?> userFileSizeDistribution;
         final Function<String, UserStats> createUserStat;
         final Summary userReplication;
         // Path stats
@@ -155,7 +155,7 @@ public class FsImageReporter {
         final Function<String, PathStats> createPathStat;
         // Path sets
         final Map<String, PathStats> pathSetStats;
-        final SimpleCollector pathSetFileSizeDistribution;
+        final SimpleCollector<?> pathSetFileSizeDistribution;
         final Function<String, PathStats> createPathSetStat;
 
         Report(Config config) {
@@ -297,7 +297,7 @@ public class FsImageReporter {
         final OverallStats overallStats = report.overallStats;
 
         long t = System.currentTimeMillis();
-        new FsVisitor.Builder().parallel().visit(fsImageData,new FsVisitor() {
+        new FsVisitor.Builder().parallel().visit(fsImageData, new FsVisitor() {
             @Override
             public void onFile(FsImageProto.INodeSection.INode inode, String path) {
                 FsImageProto.INodeSection.INodeFile f = inode.getFile();
@@ -444,25 +444,39 @@ public class FsImageReporter {
 
     private static void addMatchingPaths(FsImageData fsImageData, Set<String> expandedPaths, String path)
             throws IOException {
-        int idx = path.lastIndexOf('/');
-        if (idx < 0) {
-            LOG.error("Skipping invalid path <{}> for per-path-stats", path);
-        } else {
-            String parent = (idx == 0 ? "/" : path.substring(0, idx));
-            try {
-                List<String> childPaths = fsImageData.getChildDirectories(parent);
-                Pattern pattern = Pattern.compile(path);
-                childPaths.removeIf(p -> !pattern.matcher(p).matches());
-                if (childPaths.isEmpty()) {
-                    LOG.warn("No matches found for {}", path);
-                } else {
-                    expandedPaths.addAll(childPaths);
-                }
-            } catch (FileNotFoundException | NoSuchElementException ex) {
-                LOG.warn("Skipping configured, non-existing path {} for metric computations." +
-                        " Check your configuration path/pathSet entries!", parent);
-            }
+        // 1. Find base path
+        //    Example: path= "/foo/bar/.*" -> "/foo/bar/"
+        final String[] parts = path.split("/");
+        String basePath = "/";
+        int i = 1;
+        while (i < parts.length) {
+            String part = parts[i];
+            if (hasDirectory(fsImageData, basePath + part)) {
+                i++;
+                basePath += part + '/';
+            } else break;
         }
+        LOG.info("Base path for {} is {}", path, basePath);
+
+        // 2. Expand paths below base path
+        Set<String> paths = Collections.singleton(basePath);
+        for (int j=i; j < parts.length; j++) {
+            String part = parts[j];
+            Pattern pattern = Pattern.compile(part);
+            Set<String> matchedPaths = new HashSet<>();
+            for (String currentPath : paths) {
+                try {
+                    List<String> childPaths = fsImageData.getChildDirectories(currentPath,
+                            iNode -> pattern.matcher(iNode.getName().toStringUtf8()).matches());
+                    matchedPaths.addAll(childPaths);
+                } catch (FileNotFoundException | NoSuchElementException ex) {
+                    LOG.warn("Skipping configured, non-existing path {} for metric computations." +
+                            " Check your configuration path/pathSet entries!", currentPath);
+                }
+            }
+            paths = matchedPaths;
+        }
+        expandedPaths.addAll(paths);
     }
 
     /**

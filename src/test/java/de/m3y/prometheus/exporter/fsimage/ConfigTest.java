@@ -1,14 +1,14 @@
 package de.m3y.prometheus.exporter.fsimage;
 
+import org.junit.Test;
+import org.yaml.snakeyaml.Yaml;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import org.junit.Test;
-import org.yaml.snakeyaml.Yaml;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,7 +39,7 @@ public class ConfigTest {
         assertThat(pathSets.get("userMmAndFooAndAsset1")).
                 containsExactlyInAnyOrder("/datalake/asset3", "/user/mm", "/user/foo");
         assertThat(pathSets.get("datalakeAsset1and2"))
-                .containsExactlyInAnyOrder("/datalake/asset2", "/datalake/asset1");
+                .containsExactlyInAnyOrder("/datalak.?/asset[2]", "/datalake/asset1");
         assertThat(config.isSkipFileDistributionForPathSetStats()).isTrue();
 
         // File size distribution

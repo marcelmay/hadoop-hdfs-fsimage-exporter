@@ -25,7 +25,7 @@ pathSets:
     ]
   'datalakeAsset1and2' : [
     '/datalake/asset1',
-    '/datalake/asset2'
+    '/datalak.?/asset[2]' # Including regexp
     ]
 # Skip file size distribution for path sets based stats
 skipFileDistributionForPathSetStats : true
