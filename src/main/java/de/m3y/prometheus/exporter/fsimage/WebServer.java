@@ -5,7 +5,6 @@ import io.prometheus.client.Info;
 import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.hotspot.DefaultExports;
 import org.apache.log4j.Level;
-import org.apache.log4j.spi.RootLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -13,6 +12,8 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+
+import static org.apache.log4j.Logger.getRootLogger;
 
 public class WebServer {
     private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
@@ -74,7 +75,7 @@ public class WebServer {
             System.exit(1);
         }
 
-        RootLogger.getRootLogger().setLevel(Level.toLevel(System.getProperty("log.level"), Level.INFO));
+        getRootLogger().setLevel(Level.toLevel(System.getProperty("log.level"), Level.INFO));
 
         try (FileInputStream reader = new FileInputStream(args[2])) {
             Config config = new Yaml().loadAs(reader, Config.class);

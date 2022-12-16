@@ -35,7 +35,7 @@ public class ConfigTest {
         // PathSets
         assertThat(config.hasPathSets()).isTrue();
         final Map<String, List<String>> pathSets = config.getPathSets();
-        assertThat(pathSets.size()).isEqualTo(2);
+        assertThat(pathSets).hasSize(2);
         assertThat(pathSets.get("userMmAndFooAndAsset1")).
                 containsExactlyInAnyOrder("/datalake/asset3", "/user/mm", "/user/foo");
         assertThat(pathSets.get("datalakeAsset1and2"))

@@ -447,19 +447,19 @@ public class FsImageReporter {
         // 1. Find base path
         //    Example: path= "/foo/bar/.*" -> "/foo/bar/"
         final String[] parts = path.split("/");
-        String basePath = "/";
+        StringBuilder basePath = new StringBuilder("/");
         int i = 1;
         while (i < parts.length) {
             String part = parts[i];
             if (hasDirectory(fsImageData, basePath + part)) {
                 i++;
-                basePath += part + '/';
+                basePath.append(part).append('/');
             } else break;
         }
         LOG.info("Base path for {} is {}", path, basePath);
 
         // 2. Expand paths below base path
-        Set<String> paths = Collections.singleton(basePath);
+        Set<String> paths = Collections.singleton(basePath.toString());
         for (int j=i; j < parts.length; j++) {
             String part = parts[j];
             Pattern pattern = Pattern.compile(part);
