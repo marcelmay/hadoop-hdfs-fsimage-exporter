@@ -40,7 +40,7 @@ For building:
 * Docker (only required if building docker image)
 
 For running:
-* JRE 8+ for running
+* JRE 8+ for running (JRE 17+ LTS recommended)
 * Access to Hadoop FSImage file
 * Docker (only required if building docker image)
 
@@ -572,7 +572,7 @@ jvm_memory_pool_allocated_bytes_created{pool="CodeHeap 'non-nmethods'",} 1.65522
 This Hadoop HDFS FSImage Exporter is released under the [Apache 2.0 license](LICENSE).
 
 ```
-Copyright 2018 Marcel May
+Copyright 2018+ Marcel May
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
