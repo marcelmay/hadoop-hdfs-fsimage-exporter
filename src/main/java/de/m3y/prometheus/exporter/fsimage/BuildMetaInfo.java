@@ -5,12 +5,8 @@ package de.m3y.prometheus.exporter.fsimage;
  *
  * The actual values get injected during compile/build time via inject-maven-plugin.
  */
-class BuildMetaInfo {
-    public static final BuildMetaInfo INSTANCE = new BuildMetaInfo();
-
-    private BuildMetaInfo() {
-        // No direct instantiation.
-    }
+enum BuildMetaInfo {
+    INSTANCE; // Enum Singleton
 
     public String getVersion() {
         return "<will be replaced>"; // NOSONAR
