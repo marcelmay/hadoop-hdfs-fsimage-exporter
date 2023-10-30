@@ -9,7 +9,7 @@
 # > docker build -t example-fsimage-exporter -f Dockerfile .
 # > docker run -it -p 9709:9709 -v $PWD/src/test/resources:/fsimage-location example-fsimage-exporter
 #
-FROM azul/zulu-openjdk-alpine:17.0.8-jre-headless
+FROM azul/zulu-openjdk-alpine:17.0.9-17.46.19-jre-headless
 
 LABEL org.opencontainers.image.url=https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter
 LABEL org.opencontainers.image.source=https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter/blob/master/Dockerfile
