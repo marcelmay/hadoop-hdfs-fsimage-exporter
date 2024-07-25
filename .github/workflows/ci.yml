@@ -1,0 +1,32 @@
+name: ci
+on:
+  push:
+    paths-ignore:
+      - "**/*.md"
+      - ".github/dependabot.yml"
+  pull_request:
+    paths-ignore:
+      - "**/*.md"
+      - ".github/dependabot.yml"
+  workflow_dispatch: # Manual trigger
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '11', '17', '21' ]
+    name: Java ${{ matrix.Java }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set-up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: ${{ matrix.java }}
+          cache: 'maven'
+      - name: Build with Maven
+        # See https://maven.apache.org/ref/current/maven-embedder/cli.html
+        run: ./mvnw --batch-mode -V --fail-at-end --errors install
