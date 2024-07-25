@@ -37,7 +37,7 @@ This avoids blocking and long-running Prometheus scrapes and potentially stale m
 ## Requirements
 For building:
 * JDK 8
-* [Maven 3.8.x](http://maven.apache.org)
+* [Maven 3.9.x](http://maven.apache.org)
 * Docker (only required if building docker image)
 
 For running:

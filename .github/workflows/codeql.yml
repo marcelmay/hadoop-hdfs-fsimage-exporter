@@ -46,14 +46,16 @@ jobs:
         # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         queries: security-and-quality
 
-    - name: Set up Maven
-      uses: stCarolas/setup-maven@v5
+    - name: Set-up Java
+      uses: actions/setup-java@v4
       with:
-        maven-version: 3.9.6
-        
+        distribution: 'zulu'
+        java-version: '8'
+        cache: 'maven'
+
     - name: Build
       run: |
-        mvn -B -V package
+        ./mvnw --batch-mode -V package
       
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
