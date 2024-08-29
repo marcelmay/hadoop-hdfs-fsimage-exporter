@@ -19,8 +19,8 @@ ARG APP_USER=fsimage_exporter
 ARG APP_USER_ID=1000
 ARG APP_HOME=/opt/fsimage-exporter
 
-ENV JAVA_OPTS -server
-ENV FSIMAGE_EXPORTER_OPTS 0.0.0.0 9709 $APP_HOME/fsimage-exporter-config.yml
+ENV JAVA_OPTS="-server"
+ENV FSIMAGE_EXPORTER_OPTS="0.0.0.0 9709 $APP_HOME/fsimage-exporter-config.yml"
 ENV APP_HOME=$APP_HOME
 
 # Install dumb-init
