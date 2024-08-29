@@ -1,17 +1,17 @@
 package de.m3y.prometheus.exporter.fsimage;
 
+import io.prometheus.client.Collector;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import io.prometheus.client.Collector;
-import io.prometheus.client.Counter;
-import io.prometheus.client.Gauge;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Collects stats from Hadoop FSImage.
@@ -65,6 +65,7 @@ public class FsImageCollector extends Collector {
         scheduler.scheduleWithFixedDelay(fsImageWatcher, 0 /* Trigger immediately */, 60, TimeUnit.SECONDS);
     }
 
+    @Override
     public List<MetricFamilySamples> collect() {
         List<MetricFamilySamples> mfs = new ArrayList<>();
 

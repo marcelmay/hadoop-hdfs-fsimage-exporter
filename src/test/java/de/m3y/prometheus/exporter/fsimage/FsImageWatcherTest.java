@@ -1,13 +1,12 @@
 package de.m3y.prometheus.exporter.fsimage;
 
+import org.junit.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class FsImageWatcherTest {
 
@@ -44,7 +43,7 @@ public class FsImageWatcherTest {
 
     private File createTmpFile(File tempDirectory, String fileName) throws IOException {
         final File newFile = new File(tempDirectory, fileName);
-        newFile.createNewFile();
+        assertTrue(newFile.createNewFile());
         newFile.deleteOnExit();
         return newFile;
     }
