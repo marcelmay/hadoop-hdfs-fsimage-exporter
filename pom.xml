@@ -241,7 +241,7 @@
                 <plugin> <!-- Required for SCM properties buildNumber and scmBranch -->
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>buildnumber-maven-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.2.1</version>
                 </plugin>
                 <plugin>
                     <groupId>de.m3y.maven</groupId> <!-- (1) Add the plugin to your Maven build -->
