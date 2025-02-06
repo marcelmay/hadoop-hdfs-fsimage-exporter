@@ -27,6 +27,7 @@ class FsImageUpdateHandler {
     private static final String METRIC_POSTFIX_BLOCKS = "blocks";
     private static final String METRIC_POSTFIX_LINKS = "links";
     static final String FSIZE = "fsize";
+    static final String CSIZE = "csize";
     static final String REPLICATION = "replication";
     static final String LABEL_USER_NAME = "user_name";
 
@@ -140,7 +141,7 @@ class FsImageUpdateHandler {
     }
 
     private void updateMetricsFromReport(List<Collector.MetricFamilySamples> mfs,
-                                            FsImageReporter.Report currentReport) {
+                                         FsImageReporter.Report currentReport) {
         // Overall stats
         overall.update(currentReport.overallStats);
         overall.collect(mfs);
@@ -203,8 +204,8 @@ class FsImageUpdateHandler {
             long time = System.currentTimeMillis();
             try (Summary.Timer timer = metricLoadDuration.startTimer()) {
                 final FsImageData fsImageData = new FsImageLoader.Builder()
-                    .parallel().build()
-                    .load(raFile);
+                        .parallel().build()
+                        .load(raFile);
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info("Loaded {} with {}MiB in {}ms", fsImageFile.getAbsoluteFile(),
                             String.format("%.1f", fsImageFile.length() / 1024.0 / 1024.0),
