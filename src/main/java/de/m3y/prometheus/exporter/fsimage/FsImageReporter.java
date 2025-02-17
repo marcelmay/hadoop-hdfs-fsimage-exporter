@@ -141,8 +141,8 @@ public class FsImageReporter {
 
         // Overall stats
         final OverallStats overallStats;
-        final SimpleCollector<?> overallFleSizeDistribution;
-        final SimpleCollector<?> overallConsumedFleSizeDistribution;
+        final SimpleCollector<?> overallFileSizeDistribution;
+        final SimpleCollector<?> overallConsumedFileSizeDistribution;
         final Summary overallReplication;
         // Group stats
         final Map<String, GroupStats> groupStats;
@@ -185,8 +185,8 @@ public class FsImageReporter {
                     .buckets(configuredBuckets)
                     .help("Overall consumed file size distribution")
                     .create();
-            overallFleSizeDistribution = overallHistogram;
-            overallConsumedFleSizeDistribution = overallCHistogram;
+            overallFileSizeDistribution = overallHistogram;
+            overallConsumedFileSizeDistribution = overallCHistogram;
             overallReplication = Summary.build()
                     .name(FsImageCollector.METRIC_PREFIX + REPLICATION)
                     .help("Overall file replication").create();
@@ -305,8 +305,8 @@ public class FsImageReporter {
         }
 
         public void collect(List<MetricFamilySamples> mfs) {
-            mfs.addAll(overallFleSizeDistribution.collect());
-            mfs.addAll(overallConsumedFleSizeDistribution.collect());
+            mfs.addAll(overallFileSizeDistribution.collect());
+            mfs.addAll(overallConsumedFileSizeDistribution.collect());
             mfs.addAll(overallReplication.collect());
 
             mfs.addAll(groupFileSizeDistribution.collect());
@@ -442,7 +442,7 @@ public class FsImageReporter {
                             p, pathStats.fileSize.count(), System.currentTimeMillis() - t);
                 }
             } catch (IOException e) {
-                LOG.error("Can not traverse " + p, e);
+                LOG.error("Can not traverse {}", p, e);
                 report.error = true;
             }
         });
@@ -475,7 +475,7 @@ public class FsImageReporter {
                         entry.getKey(), pathStats.fileSize.count(), System.currentTimeMillis() - t);
             }
         } catch (IOException e) {
-            LOG.error("Can not traverse path set " + entry.getKey() + " using paths " + entry.getValue(), e);
+            LOG.error("Can not traverse path set {} using paths {}", entry.getKey(), entry.getValue(), e);
             report.error = true;
         }
     }

@@ -1,13 +1,5 @@
 package de.m3y.prometheus.exporter.fsimage;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
-
 import de.m3y.hadoop.hdfs.hfsa.core.FsImageData;
 import de.m3y.hadoop.hdfs.hfsa.core.FsImageLoader;
 import io.prometheus.client.Collector;
@@ -15,6 +7,14 @@ import io.prometheus.client.Gauge;
 import io.prometheus.client.Summary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Loads FSImage and computes metrics.
@@ -217,15 +217,15 @@ class FsImageUpdateHandler {
     }
 
     /**
-     * Gets current report.
+     * Gets the current report.
      * <p>
-     * Blocks if current report has never been computed before and is still pending / in computation
+     * Blocks if the current report has never been computed before and is still pending / in computation
      *
      * @return the current FSImage report, or null on computation error
      * @see #onFsImageChange(File)
      */
     FsImageReporter.Report getFsImageReport() {
-        // Use current report if exists, otherwise wait
+        // Use the current report if exists, otherwise wait
         if (null == report.get()) {
             // Blocks till there is a computed report
             lock.lock();

@@ -18,12 +18,12 @@ Exports Hadoop HDFS statistics to [Prometheus monitoring](https://prometheus.io/
 The exporter parses the FSImage using the [Hadoop FSImage Analysis library](https://github.com/marcelmay/hfsa).
 This approach has the advantage of
 * being fast (2.6 GB FSImage ~ 50s)
-* adding no heavy additional load to HDFS NameNode (no NameNode queries, you can run it on 2nd NameNode)
+* adding no heavy additional load to HDFS NameNode (no NameNode queries, you can run it on second NameNode)
 
 The disadvantage is
 * no real time update, only when NameNode writes FSImage (interval of hours, see
   [dfs.namenode.checkpoint.period](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml#dfs.namenode.checkpoint.period)).  
-  This should be sufficient for most cases (long term trend, detecting HDFS small file abuses, user and group stats)
+  This should be sufficient for most cases (long-term trend, detecting HDFS small file abuses, user and group stats)
 * parsing takes 2x-3x FSImage size in heap space
 
 ![FSImage Exporter overview](fsimage_exporter.png)
@@ -176,6 +176,7 @@ The metrics follow the naming and labelling pattern fsimage_[*AGG*_][*NAME*_]_[*
 
 * *NAME* can be 
   * `fsize` for tracking file size and file number
+  * `csize` for tracking consumed/erasure-encoded file size and file number
   * `replication` for tracking file replication
   * `blocks` for number of file data blocks
   * `dirs` for tracking number of files 
@@ -184,8 +185,9 @@ The metrics follow the naming and labelling pattern fsimage_[*AGG*_][*NAME*_]_[*
 * *METRIC TYPE SPECIFIC* depends on metric type ([Counter, Gauge, Histogram, Summary ...](https://prometheus.io/docs/concepts/metric_types/)) 
  
 ### Details
-* File size `fsize`
+* File size `fsize` and `csize`
   * Tracks number of files and file size
+  * `csize` is the consumed/erasure-encoded size
   * Type: Depends on configuration flag `skipFileDistribution[ForUser|ForGroup|ForPath|ForPathSets]Stats`
     * [Summary](https://prometheus.io/docs/concepts/metric_types/#summary) : when flag is `false` (default)
     * [Histogram](https://prometheus.io/docs/concepts/metric_types/#histogram) : when flag is `true`  

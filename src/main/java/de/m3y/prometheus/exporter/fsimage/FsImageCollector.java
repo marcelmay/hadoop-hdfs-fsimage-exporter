@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  * Note:
  * <ul>
  * <li>A background thread watches and parses FSImage, therefore not blocking metrics collection itself.
- * Parse time depends on FSImage size, and can be up to minutes.
+ * Parse time depends on FSImage size and can be up to minutes.
  * <p>
  * See {@link FsImageWatcher}
  * </li>

@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,31 +26,31 @@ public class FsImageReporterTest {
         assertThat(paths).contains("/datalake/asset3", "/datalake/asset1", "/datalake/asset2", "/user/mm");
 
         paths = FsImageReporter.expandPaths(fsImageData,
-                new HashSet<>(Arrays.asList("/datalake/.*")));
+                new HashSet<>(Collections.singletonList("/datalake/.*")));
         assertThat(paths)
                 .hasSize(3)
                 .contains("/datalake/asset3", "/datalake/asset1", "/datalake/asset2");
 
         paths = FsImageReporter.expandPaths(fsImageData,
-                new HashSet<>(Arrays.asList("/datalake/.*[2,3]")));
+                new HashSet<>(Collections.singletonList("/datalake/.*[2,3]")));
         assertThat(paths)
                 .hasSize(2)
                 .contains("/datalake/asset3",  "/datalake/asset2");
 
         paths = FsImageReporter.expandPaths(fsImageData,
-                new HashSet<>(Arrays.asList("/datal.*e/.*")));
+                new HashSet<>(Collections.singletonList("/datal.*e/.*")));
         assertThat(paths)
                 .hasSize(3)
                 .contains( "/datalake/asset1", "/datalake/asset2", "/datalake/asset3");
 
         paths = FsImageReporter.expandPaths(fsImageData,
-                new HashSet<>(Arrays.asList("/test.*/foo")));
+                new HashSet<>(Collections.singletonList("/test.*/foo")));
         assertThat(paths)
                 .hasSize(1)
                 .contains("/test3/foo");
 
         paths = FsImageReporter.expandPaths(fsImageData,
-                new HashSet<>(Arrays.asList("/test3/.*/.*")));
+                new HashSet<>(Collections.singletonList("/test3/.*/.*")));
         assertThat(paths)
                 .hasSize(1)
                 .contains("/test3/foo/bar");

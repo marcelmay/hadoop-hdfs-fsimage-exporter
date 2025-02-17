@@ -2,7 +2,6 @@ package de.m3y.prometheus.exporter.fsimage;
 
 /**
  * Holds build info such as version, build time etc.
- *
  * The actual values get injected during compile/build time via inject-maven-plugin.
  */
 enum BuildMetaInfo {
