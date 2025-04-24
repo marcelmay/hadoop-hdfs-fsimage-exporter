@@ -83,7 +83,7 @@ When running the docker image via Maven, docker will mount the projects' src/tes
   Create a yml file (see [example.yml](example.yml)):
   ```
   # Path where HDFS NameNode stores the fsimage files
-  # See https://hadoop.apache.org/docs/r2.7.3/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml#dfs.namenode.name.dir
+  # See https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml#dfs.namenode.name.dir
   fsImagePath : 'src/test/resources'
   
   # Skip file size distribution for group based stats
