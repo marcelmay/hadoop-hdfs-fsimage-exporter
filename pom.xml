@@ -242,7 +242,7 @@
                 <plugin>
                     <groupId>de.m3y.maven</groupId> <!-- (1) Add the plugin to your Maven build -->
                     <artifactId>inject-maven-plugin</artifactId>
-                    <version>1.7</version>
+                    <version>1.8</version>
                 </plugin>
                 <plugin>
                     <groupId>org.sonatype.central</groupId>
