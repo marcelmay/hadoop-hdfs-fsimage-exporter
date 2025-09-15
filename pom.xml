@@ -161,7 +161,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.5.3</version>
+                    <version>3.5.4</version>
                     <executions>
                         <execution>
                             <id>failsafe-integration-tests</id>
