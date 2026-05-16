@@ -37,12 +37,12 @@ This avoids blocking and long-running Prometheus scrapes and potentially stale m
 
 ## Requirements
 For building:
-* JDK 8
+* JDK 17
 * [Maven 3.9.x](http://maven.apache.org)
 * Docker (only required if building docker image)
 
 For running:
-* JRE 8+ for running (JRE 17+ LTS recommended)
+* JRE 17+ for running (JRE 21+ LTS recommended)
 * Access to Hadoop FSImage file
 * Docker (only required if building docker image)
 
