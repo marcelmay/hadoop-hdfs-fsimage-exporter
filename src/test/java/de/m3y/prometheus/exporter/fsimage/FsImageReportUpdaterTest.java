@@ -19,22 +19,21 @@ public class FsImageReportUpdaterTest {
     public void testGetReportWhenFileChanges() throws ExecutionException, InterruptedException {
         Config config = new Config();
         FsImageUpdateHandler fsImageReportUpdater = new FsImageUpdateHandler(config);
-        final Future<FsImageReporter.Report> submit;
-        try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
-            submit = executorService.submit(fsImageReportUpdater::getFsImageReport);
-            assertThat(submit.isDone()).isFalse();
 
-            // Trigger report generation
-            final File fsImageFile = new File("src/test/resources/fsimage_0001");
-            fsImageReportUpdater.onFsImageChange(fsImageFile);
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        final Future<FsImageReporter.Report> submit = executorService.submit(fsImageReportUpdater::getFsImageReport);
+        assertThat(submit.isDone()).isFalse();
 
-            // Verify result
-            final FsImageReporter.Report report = submit.get();
-            assertThat(report.error).isFalse();
+        // Trigger report generation
+        final File fsImageFile = new File("src/test/resources/fsimage_0001");
+        fsImageReportUpdater.onFsImageChange(fsImageFile);
 
-            List<Collector.MetricFamilySamples> mfs = new ArrayList<>();
-            fsImageReportUpdater.collectFsImageSamples(mfs);
-            assertThat(mfs).hasSize(20);
-        }
+        // Verify result
+        final FsImageReporter.Report report = submit.get();
+        assertThat(report.error).isFalse();
+
+        List<Collector.MetricFamilySamples> mfs = new ArrayList<>();
+        fsImageReportUpdater.collectFsImageSamples(mfs);
+        assertThat(mfs).hasSize(20);
     }
 }
