@@ -12,9 +12,7 @@ public class Config {
      * Default file size distribution bucket limits.
      */
     private static final List<String> DEFAULT_FILE_SIZE_DISTRIBUTION_BUCKETS =
-            Collections.unmodifiableList(Arrays.asList(
-                    "0", "1 MiB", "32 MiB", "64 MiB", "128 MiB", "1 GiB", "10 GiB"
-            ));
+            List.of("0", "1 MiB", "32 MiB", "64 MiB", "128 MiB", "1 GiB", "10 GiB");
 
     /**
      * Path where HDFS NameNode stores fsimage file snapshots

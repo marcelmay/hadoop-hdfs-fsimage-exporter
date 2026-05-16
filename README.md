@@ -143,7 +143,7 @@ When running the docker image via Maven, docker will mount the projects' src/tes
 * Test the exporter  
   Open http://\<hostname>:\<port>/metrics or http://\<hostname>:\<port>/ (for configuration overview)
    
-* Add to prometheus
+* Add to Prometheus
   ```
   - job_name: 'fsimage'
       scrape_interval: 180m # Depends on how often the name node writes a fsimage file.
@@ -160,7 +160,7 @@ When running the docker image via Maven, docker will mount the projects' src/tes
 
 ## Metrics
 
-The metrics follow the naming and labelling pattern fsimage_[*AGG*_][*NAME*_]_[*METRIC TYPE SPECIFIC*] where
+The metrics follow the naming and labeling pattern fsimage_\[*AGG*_]\[*NAME*_]_\[*METRIC TYPE SPECIFIC*] where
 * *AGG* is the aggregation level
   * Empty aggregation for overall stats  
     Example for total number of files: `fsimage_fsize_count{}`

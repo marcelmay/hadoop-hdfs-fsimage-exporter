@@ -35,49 +35,37 @@ public class FsImageReporter {
         long count();
     }
 
-    static class HistogramMetricAdapter implements MetricAdapter {
-        final Histogram.Child child;
-
-        HistogramMetricAdapter(Histogram.Child child) {
-            this.child = child;
-        }
-
+    record HistogramMetricAdapter(Histogram.Child child) implements MetricAdapter {
         @Override
-        public void observe(long metricValue) {
-            child.observe(metricValue);
-        }
-
-        @Override
-        public long count() {
-            return (long) sum(child.get().buckets);
-        }
-
-        private static double sum(double[] doubles) {
-            double s = 0;
-            for (double d : doubles) {
-                s += d;
+            public void observe(long metricValue) {
+                child.observe(metricValue);
             }
-            return s;
+
+            @Override
+            public long count() {
+                return (long) sum(child.get().buckets);
+            }
+
+            private static double sum(double[] doubles) {
+                double s = 0;
+                for (double d : doubles) {
+                    s += d;
+                }
+                return s;
+            }
         }
-    }
 
-    static class SummaryMetricAdapter implements MetricAdapter {
-        final Summary.Child child;
-
-        SummaryMetricAdapter(Summary.Child child) {
-            this.child = child;
-        }
-
+    record SummaryMetricAdapter(Summary.Child child) implements MetricAdapter {
         @Override
-        public void observe(long metricValue) {
-            child.observe(metricValue);
-        }
+            public void observe(long metricValue) {
+                child.observe(metricValue);
+            }
 
-        @Override
-        public long count() {
-            return (long) child.get().count;
+            @Override
+            public long count() {
+                return (long) child.get().count;
+            }
         }
-    }
 
     abstract static class AbstractFileSystemStats {
         final LongAdder sumDirectories = new LongAdder();

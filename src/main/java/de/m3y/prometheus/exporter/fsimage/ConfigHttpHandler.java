@@ -36,14 +36,15 @@ public class ConfigHttpHandler implements com.sun.net.httpserver.HttpHandler {
     }
 
     private String buildContent() {
-        StringBuilder buf = new StringBuilder().append("<html>\n"
-                + "<head><title>Hadoop HDFS FSImage Exporter</title></head>\n"
-                + "<body>\n"
-                + "<h1>Hadoop HDFS FSImage Exporter</h1>\n"
-                + "<p><a href=\"/metrics\">Metrics</a></p>\n"
-                + "<h2>Build info</h2>"
-                + "<ul>"
-                + "<li>App version: ").append(BuildMetaInfo.INSTANCE.getVersion()).append("</li>"
+        StringBuilder buf = new StringBuilder().append("""
+                <html>
+                <head><title>Hadoop HDFS FSImage Exporter</title></head>
+                <body>
+                <h1>Hadoop HDFS FSImage Exporter</h1>
+                <p><a href="/metrics">Metrics</a></p>
+                <h2>Build info</h2>\
+                <ul>\
+                <li>App version:\s""").append(BuildMetaInfo.INSTANCE.getVersion()).append("</li>"
                 + "<li>Build time : ").append(BuildMetaInfo.INSTANCE.getBuildTimeStamp()).append("</li>"
                 + "<li>SCM branch : ").append(BuildMetaInfo.INSTANCE.getBuildScmBranch()).append("</li>"
                 + "<li>SCM version : ").append(BuildMetaInfo.INSTANCE.getBuildScmVersion()).append("</li>"
