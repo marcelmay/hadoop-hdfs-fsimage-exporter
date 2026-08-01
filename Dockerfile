@@ -9,7 +9,7 @@
 # > docker build -t example-fsimage-exporter -f Dockerfile .
 # > docker run -it -p 9709:9709 -v $PWD/src/test/resources:/fsimage-location example-fsimage-exporter
 #
-FROM azul/zulu-openjdk-alpine:21.0.11-jre-headless
+FROM azul-zulu:21.52-21.0.12-jre-headless-debian13
 
 LABEL org.opencontainers.image.url=https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter
 LABEL org.opencontainers.image.source=https://github.com/marcelmay/hadoop-hdfs-fsimage-exporter/blob/master/Dockerfile
@@ -35,10 +35,10 @@ COPY --chown=$APP_USER_ID:$APP_USER_ID ./fsimage-docker.yml $APP_HOME/fsimage-ex
 COPY --chown=$APP_USER_ID:$APP_USER_ID ./target/fsimage-exporter-*.jar $APP_HOME/fsimage-exporter.jar
 
 # Run
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["/bin/sh", "-c", \
-    "echo JAVA_OPTS=\"$JAVA_OPTS\" && \
-     echo FSIMAGE_EXPORTER_OPTS=\"$FSIMAGE_EXPORTER_OPTS\" && \
-     echo UID=`id` && \
-     echo CMD=\"java $JAVA_OPTS -jar $APP_HOME/fsimage-exporter.jar $FSIMAGE_EXPORTER_OPTS\" && \
-     exec java $JAVA_OPTS -jar $APP_HOME/fsimage-exporter.jar $FSIMAGE_EXPORTER_OPTS"]
+ENTRYPOINT [ "/usr/bin/dumb-init", "--" ]
+CMD [ "/bin/sh", "-c", \
+      "echo JAVA_OPTS=\"$JAVA_OPTS\" && \
+       echo FSIMAGE_EXPORTER_OPTS=\"$FSIMAGE_EXPORTER_OPTS\" && \
+       echo UID=`id` && \
+       echo CMD=\"java $JAVA_OPTS -jar $APP_HOME/fsimage-exporter.jar $FSIMAGE_EXPORTER_OPTS\" && \
+       exec java $JAVA_OPTS -jar $APP_HOME/fsimage-exporter.jar $FSIMAGE_EXPORTER_OPTS" ]
